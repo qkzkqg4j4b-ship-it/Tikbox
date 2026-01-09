@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <link rel="apple-touch-icon" href="https://img.icons8.com/parakeet/300/F59E0B/ticket.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TikBox">
+
+    <title>TikBox</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #FDFBF7;
+            color: #4A3F35;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .folder-card {
+            background: #FFFFFF;
+            border-radius: 24px;
+            border: 1px solid #F0EDE8;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            transition: all 0.2s ease;
+        }
+
+        .folder-card:active { transform: scale(0.96); }
+
+        .ticket-card {
+            background: #FFFFFF;
+            border-radius: 20px;
+            border: 1px solid #F0EDE8;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .tab-active {
+            color: #F59E0B;
+            font-weight: 700;
+        }
+
+        .tab-active::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: #F59E0B;
+            border-radius: 10px;
+        }
+
+        .add-btn {
+            background: #F59E0B;
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .safe-pb { padding-bottom: env(safe-area-inset-bottom); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* 切換開關樣式 */
+        .toggle-dot { transition: all 0.3s ease; }
+        input:checked ~ .toggle-dot { transform: translateX(100%); background-color: #F59E0B; }
+        input:checked ~ .toggle-bg { background-color: #FEF3C7; border-color: #FDE68A; }
+    </style>
+</head>
+<body class="safe-pb">
+
+    <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col">
+        
+        <!-- 頂部標題與導航 -->
+        <header class="px-7 pt-12 pb-6 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <!-- 返回按鈕：僅在資料夾內視圖顯示 -->
+                <button id="back-btn" onclick="goHome()" class="hidden w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm active:scale-90 transition-all">
+                    <i data-lucide="chevron-left" class="w-6 h-6 text-[#4A3F35]"></i>
+                </button>
+                
+                <div onclick="goHome()" class="cursor-pointer">
+                    <p id="app-subtitle" class="text-[0.75rem] font-bold text-amber-500 uppercase opacity-80 mb-0.5">我的票券管家</p>
+                    <h1 id="app-title" class="text-3xl font-black text-[#4A3F35] tracking-tight">TikBox</h1>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <div id="breadcrumb" class="hidden text-sm font-bold text-gray-300 mr-2">
+                    <span id="current-folder-name" class="text-amber-600 bg-amber-50 px-3 py-1 rounded-lg"></span>
+                </div>
+                <button onclick="exportData()" class="p-2 text-gray-300 hover:text-amber-500 transition-colors">
+                    <i data-lucide="archive" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- 首頁視圖：分類夾 -->
+        <main id="home-view" class="flex-1 px-6 pb-32">
+            <div class="flex justify-between items-center mb-5 px-1">
+                <h2 class="text-sm font-black text-gray-400 uppercase tracking-widest">票券分類夾</h2>
+                <button onclick="openFolderModal()" class="text-sm font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-xl">+ 新增分類</button>
+            </div>
+            <div id="folder-grid" class="grid grid-cols-2 gap-4">
+                <!-- 資料夾會渲染在此 -->
+            </div>
+        </main>
+
+        <!-- 資料夾內部視圖：票券列表 -->
+        <main id="folder-view" class="flex-1 px-6 pb-32 hidden">
+            <nav class="flex px-2 gap-8 mb-6 overflow-x-auto no-scrollbar relative border-b border-gray-100 pb-3">
+                <button onclick="setTab('unused')" id="btn-unused" class="text-sm font-bold transition-all relative tab-active">未使用</button>
+                <button onclick="setTab('used')" id="btn-used" class="text-sm font-bold text-gray-300 transition-all relative">已使用</button>
+                <button onclick="setTab('expired')" id="btn-expired" class="text-sm font-bold text-gray-300 transition-all relative">已過期</button>
+            </nav>
+            <div id="ticket-list" class="space-y-4">
+                <!-- 票券卡片渲染在此 -->
+            </div>
+        </main>
+
+        <!-- 懸浮按鈕 -->
+        <button id="main-add-btn" onclick="openAddModal()" class="fixed bottom-10 right-8 w-16 h-16 add-btn text-white rounded-full flex items-center justify-center z-40 active:scale-90 transition-transform">
+            <i data-lucide="plus" class="w-8 h-8 stroke-[3]"></i>
+        </button>
+
+        <!-- 新增分類 Modal -->
+        <div id="folder-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-8">
+            <div class="bg-white w-full max-w-xs rounded-[32px] p-8 shadow-2xl">
+                <h3 class="text-xl font-black mb-6 text-center text-[#4A3F35]">建立新分類</h3>
+                <input id="new-folder-name" type="text" placeholder="例如：早餐、咖啡..." class="w-full bg-gray-50 border-none p-4 rounded-2xl text-base font-bold outline-none mb-6">
+                <div class="flex gap-3">
+                    <button onclick="closeFolderModal()" class="flex-1 py-4 bg-gray-100 rounded-2xl text-sm font-bold text-gray-400">取消</button>
+                    <button onclick="saveFolder()" class="flex-1 py-4 bg-amber-500 rounded-2xl text-sm font-bold text-white shadow-lg">建立</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新增票券 Modal -->
+        <div id="ticket-modal" class="fixed inset-0 bg-white z-50 hidden overflow-y-auto">
+            <div class="px-8 pt-16 pb-12">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-black text-[#4A3F35]">存入票券</h2>
+                    <button onclick="closeAddModal()" class="text-gray-300"><i data-lucide="x" class="w-7 h-7"></i></button>
+                </div>
+                <div class="space-y-6">
+                    <div onclick="document.getElementById('file-input').click()" class="aspect-video bg-[#F9F7F4] rounded-[32px] border-2 border-dashed border-[#EAE2D6] flex flex-col items-center justify-center overflow-hidden relative">
+                        <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleFile(this)">
+                        <img id="img-output" class="hidden w-full h-full object-cover">
+                        <div id="upload-hint" class="text-center">
+                            <i data-lucide="image" class="w-10 h-10 text-amber-200 mx-auto mb-2"></i>
+                            <p class="text-xs font-bold text-gray-300 uppercase tracking-widest">點擊上傳截圖</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-5">
+                        <div class="border-b border-gray-100 pb-2">
+                            <label class="text-[0.75rem] font-bold text-amber-500 uppercase">存放分類</label>
+                            <select id="ticket-folder-select" class="w-full bg-transparent border-none py-2 text-lg font-bold outline-none"></select>
+                        </div>
+                        <div class="border-b border-gray-100 pb-2">
+                            <label class="text-[0.75rem] font-bold text-amber-500 uppercase">票券名稱</label>
+                            <input id="title" type="text" placeholder="輸入名稱..." class="w-full bg-transparent border-none py-2 text-lg font-bold outline-none">
+                        </div>
+                        <div class="border-b border-gray-100 pb-2">
+                            <label class="text-[0.75rem] font-bold text-amber-500 uppercase">序號 (可選)</label>
+                            <input id="serial" type="text" placeholder="貼上序號..." class="w-full bg-transparent border-none py-2 text-lg font-bold outline-none text-amber-600">
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-2">
+                            <div>
+                                <label class="text-[0.75rem] font-bold text-amber-500 uppercase">有效期限</label>
+                                <p id="expiry-status-text" class="text-sm font-bold text-gray-400">請設定截止日期</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-xs font-bold text-gray-400">無期限</span>
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="no-expiry-toggle" class="sr-only peer" onchange="toggleExpiryInput()">
+                                    <div class="w-11 h-6 bg-gray-100 rounded-full peer toggle-bg border border-gray-200"></div>
+                                    <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow-sm toggle-dot"></div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="expiry-input-wrapper" class="border-b border-gray-100 pb-2">
+                            <input id="expiry" type="date" class="w-full bg-transparent border-none py-2 text-lg font-bold outline-none">
+                        </div>
+                    </div>
+                    <button onclick="saveTicket()" class="w-full py-6 add-btn text-white rounded-[24px] font-black text-lg mt-4">確認存入</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 圖片檢視器 -->
+        <div id="viewer" class="fixed inset-0 bg-white/98 backdrop-blur-xl z-[60] hidden flex flex-col items-center justify-center p-8" onclick="closeViewer()">
+            <img id="viewer-img" class="max-w-full max-h-[75vh] rounded-[32px] shadow-2xl border-4 border-white mb-8">
+            <p class="text-xs font-bold text-gray-300 uppercase tracking-widest">點擊任意處關閉</p>
+        </div>
+
+        <!-- Toast -->
+        <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-[#4A3F35] text-white px-8 py-3 rounded-full text-sm font-bold opacity-0 transition-all pointer-events-none z-[70]"></div>
+    </div>
+
+    <script>
+        let db = JSON.parse(localStorage.getItem('tikbox_v6_db')) || { folders: [], tickets: [] };
+        let currentFolderId = null;
+        let currentTab = 'unused';
+        let tempImg = null;
+
+        function render() {
+            const folderGrid = document.getElementById('folder-grid');
+            const ticketList = document.getElementById('ticket-list');
+            const folderSelect = document.getElementById('ticket-folder-select');
+            
+            // 渲染首頁分類夾
+            folderGrid.innerHTML = db.folders.map(f => {
+                const count = db.tickets.filter(t => t.folderId === f.id && !t.used).length;
+                return `
+                    <div onclick="openFolder('${f.id}')" class="folder-card p-6 relative group">
+                        <button onclick="event.stopPropagation(); deleteFolder('${f.id}')" class="absolute top-4 right-4 text-gray-200 hover:text-red-400 transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                        <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-4">
+                            <i data-lucide="folder" class="w-6 h-6 text-amber-500"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-[#4A3F35] truncate">${f.name}</h3>
+                        <p class="text-sm font-bold text-gray-300 mt-1">${count} 張票券</p>
+                    </div>
+                `;
+            }).join('');
+
+            if(db.folders.length === 0) {
+                folderGrid.innerHTML = `<div class="col-span-2 py-20 text-center opacity-30"><i data-lucide="layers" class="w-12 h-12 mx-auto mb-2"></i><p class="font-bold">尚無分類夾</p></div>`;
+            }
+
+            // 渲染票券列表
+            if (currentFolderId) {
+                const today = new Date().toISOString().split('T')[0];
+                const filtered = db.tickets.filter(t => {
+                    if (t.folderId !== currentFolderId) return false;
+                    const isNoExpiry = t.expiry === 'no-limit';
+                    const expired = !isNoExpiry && t.expiry < today;
+                    if (currentTab === 'expired') return expired && !t.used;
+                    if (currentTab === 'used') return t.used;
+                    return !t.used && !expired;
+                }).sort((a, b) => {
+                    if (a.expiry === 'no-limit') return 1;
+                    if (b.expiry === 'no-limit') return -1;
+                    return new Date(a.expiry) - new Date(b.expiry);
+                });
+
+                ticketList.innerHTML = filtered.map(t => {
+                    const isNoExpiry = t.expiry === 'no-limit';
+                    const expired = !isNoExpiry && t.expiry < today;
+                    const dateDisplay = isNoExpiry ? '無期限' : `截止: ${t.expiry}`;
+
+                    return `
+                    <div class="ticket-card p-5 space-y-4">
+                        <div class="flex items-center gap-5">
+                            <div class="w-14 h-14 bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 flex-shrink-0" onclick="viewImage('${t.image}')">
+                                ${t.image ? `<img src="${t.image}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-amber-100"><i data-lucide="ticket" class="w-6 h-6"></i></div>`}
+                            </div>
+                            <div class="flex-1 min-w-0" onclick="${t.image ? `viewImage('${t.image}')` : ''}">
+                                <h4 class="text-lg font-black text-[#4A3F35] truncate">${t.title}</h4>
+                                <p class="text-xs font-bold ${expired ? 'text-red-400' : (isNoExpiry ? 'text-blue-400' : 'text-amber-500')} mt-1 uppercase tracking-wider">${dateDisplay}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="toggleUsed('${t.id}')" class="w-10 h-10 rounded-full flex items-center justify-center transition-all ${t.used ? 'bg-green-500 text-white shadow-lg' : 'bg-gray-50 text-gray-200'}">
+                                    <i data-lucide="check" class="w-5 h-5 stroke-[3]"></i>
+                                </button>
+                                <button onclick="deleteTicket('${t.id}')" class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-50 text-gray-200">
+                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                        ${t.serial ? `
+                            <div class="bg-amber-50/50 rounded-2xl p-4 flex justify-between items-center border border-amber-100/20">
+                                <code class="text-sm font-bold text-amber-700 font-mono truncate mr-4">${t.serial}</code>
+                                <button onclick="copySerial('${t.serial}', this)" class="text-xs font-black text-amber-500 uppercase flex items-center gap-1 bg-white px-3 py-1.5 rounded-xl shadow-sm">
+                                    <i data-lucide="copy" class="w-3 h-3"></i> 複製
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `}).join('');
+                if(filtered.length === 0) ticketList.innerHTML = `<div class="py-24 text-center opacity-30"><p class="font-bold">目前沒有票券</p></div>`;
+            }
+
+            folderSelect.innerHTML = db.folders.map(f => `<option value="${f.id}" ${f.id === currentFolderId ? 'selected' : ''}>${f.name}</option>`).join('');
+
+            if (window.lucide) window.lucide.createIcons();
+            localStorage.setItem('tikbox_v6_db', JSON.stringify(db));
+        }
+
+        function toggleExpiryInput() {
+            const isNoExpiry = document.getElementById('no-expiry-toggle').checked;
+            const wrapper = document.getElementById('expiry-input-wrapper');
+            const statusText = document.getElementById('expiry-status-text');
+            if (isNoExpiry) {
+                wrapper.classList.add('hidden');
+                statusText.innerText = '此票券永久有效';
+                statusText.classList.replace('text-gray-400', 'text-blue-400');
+            } else {
+                wrapper.classList.remove('hidden');
+                statusText.innerText = '請設定截止日期';
+                statusText.classList.replace('text-blue-400', 'text-gray-400');
+            }
+        }
+
+        function openFolder(id) {
+            currentFolderId = id;
+            const folder = db.folders.find(f => f.id === id);
+            document.getElementById('current-folder-name').innerText = folder.name;
+            
+            // 介面切換
+            document.getElementById('back-btn').classList.remove('hidden');
+            document.getElementById('breadcrumb').classList.remove('hidden');
+            document.getElementById('home-view').classList.add('hidden');
+            document.getElementById('folder-view').classList.remove('hidden');
+            
+            // 標題樣式微調
+            document.getElementById('app-title').classList.replace('text-3xl', 'text-xl');
+            document.getElementById('app-subtitle').classList.add('hidden');
+            
+            render();
+        }
+
+        function goHome() {
+            currentFolderId = null;
+            
+            // 介面切換
+            document.getElementById('back-btn').classList.add('hidden');
+            document.getElementById('breadcrumb').classList.add('hidden');
+            document.getElementById('home-view').classList.remove('hidden');
+            document.getElementById('folder-view').classList.add('hidden');
+            
+            // 標題樣式還原
+            document.getElementById('app-title').classList.replace('text-xl', 'text-3xl');
+            document.getElementById('app-subtitle').classList.remove('hidden');
+            
+            render();
+        }
+
+        function saveFolder() {
+            const name = document.getElementById('new-folder-name').value;
+            if (!name) return;
+            db.folders.push({ id: Date.now().toString(), name });
+            document.getElementById('new-folder-name').value = '';
+            closeFolderModal();
+            render();
+        }
+
+        function saveTicket() {
+            const title = document.getElementById('title').value;
+            const folderId = document.getElementById('ticket-folder-select').value;
+            const serial = document.getElementById('serial').value;
+            const isNoExpiry = document.getElementById('no-expiry-toggle').checked;
+            const expiryDate = document.getElementById('expiry').value;
+            const expiry = isNoExpiry ? 'no-limit' : expiryDate;
+            if (!title || (!isNoExpiry && !expiryDate) || !folderId) return showToast('資料填寫不完整');
+            db.tickets.push({ id: Date.now().toString(), title, expiry, folderId, serial, image: tempImg, used: false });
+            closeAddModal();
+            render();
+            showToast('已成功存入盒子');
+        }
+
+        function openFolderModal() { document.getElementById('folder-modal').classList.remove('hidden'); }
+        function closeFolderModal() { document.getElementById('folder-modal').classList.add('hidden'); }
+        
+        function openAddModal() { 
+            if(db.folders.length === 0) return showToast('請先新增一個分類夾');
+            document.getElementById('ticket-modal').classList.remove('hidden');
+            document.getElementById('no-expiry-toggle').checked = false;
+            toggleExpiryInput();
+            if (window.lucide) window.lucide.createIcons();
+        }
+        function closeAddModal() { document.getElementById('ticket-modal').classList.add('hidden'); }
+        
+        function handleFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                tempImg = e.target.result;
+                document.getElementById('img-output').src = tempImg;
+                document.getElementById('img-output').classList.remove('hidden');
+                document.getElementById('upload-hint').classList.add('hidden');
+                const dateMatch = file.name.match(/\d{4}[-/]\d{2}[-/]\d{2}/);
+                if (dateMatch) {
+                    document.getElementById('expiry').value = dateMatch[0].replace(/\//g, '-');
+                    document.getElementById('no-expiry-toggle').checked = false;
+                    toggleExpiryInput();
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function copySerial(text, btn) {
+            const el = document.createElement('textarea');
+            el.value = text; document.body.appendChild(el);
+            el.select(); document.execCommand('copy');
+            document.body.removeChild(el);
+            const original = btn.innerHTML;
+            btn.innerHTML = `成功`; btn.classList.add('text-green-500');
+            showToast('序號已複製');
+            setTimeout(() => { btn.innerHTML = original; btn.classList.remove('text-green-500'); if(window.lucide) window.lucide.createIcons(); }, 1500);
+        }
+
+        function toggleUsed(id) {
+            const t = db.tickets.find(x => x.id === id);
+            t.used = !t.used; render();
+        }
+
+        function deleteTicket(id) { if(confirm('確定刪除票券？')) { db.tickets = db.tickets.filter(x => x.id !== id); render(); } }
+        function deleteFolder(id) { if(confirm('刪除分類會一併刪除內容，確定嗎？')) { db.folders = db.folders.filter(x => x.id !== id); db.tickets = db.tickets.filter(x => x.folderId !== id); render(); } }
+
+        function setTab(tab) {
+            currentTab = tab;
+            ['unused', 'used', 'expired'].forEach(t => {
+                document.getElementById('btn-' + t).className = t === tab ? 'text-sm font-bold transition-all relative tab-active' : 'text-sm font-bold text-gray-300 transition-all relative';
+            });
+            render();
+        }
+
+        function viewImage(src) { if(src) { document.getElementById('viewer-img').src = src; document.getElementById('viewer').classList.remove('hidden'); } }
+        function closeViewer() { document.getElementById('viewer').classList.add('hidden'); }
+        function showToast(msg) {
+            const t = document.getElementById('toast'); t.innerText = msg;
+            t.classList.add('opacity-100'); setTimeout(() => t.classList.remove('opacity-100'), 2000);
+        }
+
+        function exportData() {
+            const blob = new Blob([JSON.stringify(db)], {type: 'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob); a.download = `TikBox_Backup.json`; a.click();
+            showToast('備份匯出成功');
+        }
+
+        window.onload = function() {
+            render();
+            if (window.lucide) window.lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
