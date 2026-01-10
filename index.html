@@ -9,9 +9,9 @@
     <link rel="icon" sizes="192x192" href="https://raw.githubusercontent.com/qkzkqg4j4b-ship-it/Tikbox/refs/heads/main/IMG_8203.jpeg">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Tixbox">
+    <meta name="apple-mobile-web-app-title" content="Tikbox">
 
-    <title>Tixbox v4.4</title>
+    <title>Tikbox v4.7</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
@@ -92,6 +92,18 @@
             display: flex; align-items: center; justify-content: space-between; min-height: 56px;
         }
         .native-date-input { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
+        
+        .sn-badge {
+            background: #F1F5F9; color: #64748B; font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;
+        }
+
+        /* Toggle Switch */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #E2E8F0; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #F59E0B; }
+        input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body class="safe-pb">
@@ -113,10 +125,16 @@
             <img id="lightbox-img" src="">
         </div>
         <div class="absolute top-0 left-0 w-full p-6 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent">
-            <p id="lightbox-title" class="text-white font-black text-sm"></p>
+            <div>
+                <p id="lightbox-title" class="text-white font-black text-sm"></p>
+                <p id="lightbox-sn" class="text-white/60 text-[10px] font-bold mt-1"></p>
+            </div>
             <button onclick="closeLightbox()" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-md">
                 <svg class="w-6 h-6" stroke="currentColor"><use xlink:href="#icon-x"></use></svg>
             </button>
+        </div>
+        <div id="lightbox-copy-btn" class="absolute bottom-10 px-6 py-3 bg-white/20 backdrop-blur-md rounded-full text-white text-xs font-bold border border-white/10 hidden" onclick="copySNFromLightbox()">
+            點擊複製序號
         </div>
     </div>
 
@@ -129,10 +147,10 @@
                 </button>
                 <div onclick="goHome()">
                     <p class="text-[11px] font-black text-amber-500 uppercase tracking-[2px] mb-1">我的票倉</p>
-                    <h1 class="text-3xl font-black text-[#4A3F35] tracking-tighter">Tixbox</h1>
+                    <h1 class="text-3xl font-black text-[#4A3F35] tracking-tighter">Tikbox 🎫</h1>
                 </div>
             </div>
-            <div class="text-[10px] font-bold text-gray-300 bg-gray-100 px-2 py-1 rounded-md">v4.4</div>
+            <div class="text-[10px] font-bold text-gray-300 bg-gray-100 px-2 py-1 rounded-md">v4.7</div>
         </header>
 
         <main id="home-view" class="flex-1 px-6 pb-32">
@@ -160,7 +178,9 @@
 
         <!-- 票券列表視圖 -->
         <main id="folder-view" class="flex-1 px-6 pb-32 hidden">
-            <div class="mb-6"><span id="current-folder-name" class="text-2xl font-black text-[#4A3F35]"></span></div>
+            <div class="mb-6 flex justify-between items-center">
+                <span id="current-folder-name" class="text-2xl font-black text-[#4A3F35]"></span>
+            </div>
             <nav class="flex px-2 gap-8 mb-6 overflow-x-auto no-scrollbar border-b border-gray-100 pb-3">
                 <button onclick="setTab('unused')" id="btn-unused" class="text-sm font-bold transition-all relative tab-active">未使用</button>
                 <button onclick="setTab('used')" id="btn-used" class="text-sm font-bold text-gray-300 transition-all relative">已使用</button>
@@ -173,10 +193,11 @@
             <svg class="w-8 h-8" stroke="white"><use xlink:href="#icon-plus"></use></svg>
         </button>
 
-        <!-- 分類 Modal (優化版) -->
+        <!-- 分類 Modal (支援新增與編輯) -->
         <div id="folder-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-8">
             <div class="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl">
-                <h3 class="text-xl font-black mb-6 text-center">新分類夾</h3>
+                <h3 id="folder-modal-title" class="text-xl font-black mb-6 text-center">新分類夾</h3>
+                <input type="hidden" id="editing-folder-id">
                 
                 <div class="mb-6">
                     <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-3 ml-1">1. 選擇圖示類別</p>
@@ -187,15 +208,16 @@
                         <button onclick="selectQuickTag(this, '💄')" class="quick-tag">美妝 💄</button>
                         <button onclick="selectQuickTag(this, '🛍️')" class="quick-tag">百貨 🛍️</button>
                         <button onclick="selectQuickTag(this, '🥤')" class="quick-tag">飲料 🥤</button>
+                        <button onclick="selectQuickTag(this, '🎫')" class="quick-tag">票券 🎫</button>
                     </div>
                     
-                    <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-3 ml-1">2. 輸入分類名稱 (如：摩斯漢堡)</p>
+                    <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-3 ml-1">2. 輸入分類名稱</p>
                     <input id="new-folder-name" type="text" placeholder="名稱..." class="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-amber-100 transition-all">
                 </div>
 
                 <div class="flex gap-3">
                     <button onclick="closeFolderModal()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-gray-400 text-sm">取消</button>
-                    <button onclick="saveFolder()" class="flex-1 py-4 bg-amber-500 rounded-2xl font-bold text-white text-sm shadow-lg">建立</button>
+                    <button onclick="saveFolder()" class="flex-1 py-4 bg-amber-500 rounded-2xl font-bold text-white text-sm shadow-lg">儲存</button>
                 </div>
             </div>
         </div>
@@ -243,6 +265,22 @@
                             <label class="text-[10px] font-black text-amber-500 uppercase tracking-widest">票券名稱</label>
                             <input id="title" type="text" placeholder="如：大薯買一送一" class="w-full bg-transparent border-none py-1 text-lg font-black outline-none">
                         </div>
+                        <div class="border-b border-gray-100 pb-2">
+                            <label class="text-[10px] font-black text-amber-500 uppercase tracking-widest">序號 / 備註</label>
+                            <input id="sn-input" type="text" placeholder="選填，點擊可快速複製" class="w-full bg-transparent border-none py-1 text-lg font-black outline-none">
+                        </div>
+                        
+                        <div class="flex items-center justify-between py-2">
+                            <div>
+                                <label class="text-[10px] font-black text-amber-500 uppercase tracking-widest block">無使用期限</label>
+                                <span class="text-xs text-gray-400 font-bold">開啟後不顯示過期提醒</span>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="no-expiry-toggle" onchange="toggleExpiryInput()">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
                         <div id="expiry-input-wrapper" class="date-input-container">
                             <span id="date-text" class="text-sm font-bold text-gray-400">有效日期：選取</span>
                             <input id="expiry" type="date" class="native-date-input" onchange="document.getElementById('date-text').innerText=this.value">
@@ -257,7 +295,7 @@
     </div>
 
     <script>
-        const APP_VERSION = "4.4";
+        const APP_VERSION = "4.7";
         if (localStorage.getItem('tikbox_version') !== APP_VERSION) {
             localStorage.setItem('tikbox_version', APP_VERSION);
             if ('caches' in window) caches.keys().then(ns => ns.forEach(n => caches.delete(n)));
@@ -274,6 +312,13 @@
             document.querySelectorAll('.quick-tag').forEach(t => t.classList.remove('selected'));
             btn.classList.add('selected');
             selectedEmoji = emoji;
+        }
+
+        function toggleExpiryInput() {
+            const wrapper = document.getElementById('expiry-input-wrapper');
+            const isNoExpiry = document.getElementById('no-expiry-toggle').checked;
+            wrapper.style.opacity = isNoExpiry ? '0.3' : '1';
+            wrapper.style.pointerEvents = isNoExpiry ? 'none' : 'auto';
         }
 
         function render() {
@@ -298,7 +343,8 @@
             // 渲染分類
             folderList.innerHTML = db.folders.map(f => {
                 const count = db.tickets.filter(t => t.folderId === f.id && !t.used).length;
-                const emoji = f.name.match(/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/) ? f.name.match(/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/)[0] : "🏷️";
+                const emojiMatch = f.name.match(/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/);
+                const emoji = emojiMatch ? emojiMatch[0] : "🏷️";
                 const cleanName = f.name.replace(/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/, "").trim();
 
                 return `
@@ -310,7 +356,11 @@
                                 <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest">${count} 張可用</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2"><button onclick="event.stopPropagation(); deleteFolder('${f.id}')" class="p-2 text-gray-100 hover:text-red-300"><svg class="w-4 h-4"><use xlink:href="#icon-trash"></use></svg></button><svg class="w-5 h-5 text-gray-200"><use xlink:href="#icon-chevron-right"></use></svg></div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="event.stopPropagation(); openFolderModal('${f.id}')" class="p-2 text-gray-200 hover:text-amber-500"><svg class="w-4 h-4"><use xlink:href="#icon-edit"></use></svg></button>
+                            <button onclick="event.stopPropagation(); deleteFolder('${f.id}')" class="p-2 text-gray-100 hover:text-red-300"><svg class="w-4 h-4"><use xlink:href="#icon-trash"></use></svg></button>
+                            <svg class="w-5 h-5 text-gray-200"><use xlink:href="#icon-chevron-right"></use></svg>
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -319,7 +369,7 @@
             if (currentFolderId) {
                 const filtered = db.tickets.filter(t => {
                     if (t.folderId !== currentFolderId) return false;
-                    const expired = t.expiry && t.expiry < today;
+                    const expired = !t.noExpiry && t.expiry && t.expiry < today;
                     if (currentTab === 'expired') return expired && !t.used;
                     if (currentTab === 'used') return t.used;
                     return !t.used && !expired;
@@ -332,8 +382,14 @@
                             <div class="swipe-action" onclick="deleteTicket('${t.id}')"><svg class="w-6 h-6"><use xlink:href="#icon-trash"></use></svg></div>
                             <div class="swipe-content p-5" id="content-${t.id}" ontouchstart="handleTouchStart(event,'${t.id}')" ontouchmove="handleTouchMove(event,'${t.id}')" ontouchend="handleTouchEnd(event,'${t.id}')">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-16 h-16 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-100" onclick="zoomImage('${t.image || ''}','${t.title}')">${t.image ? `<img src="${t.image}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-black text-amber-100 text-xs">NO IMG</div>`}</div>
-                                    <div class="flex-1 min-w-0" onclick="zoomImage('${t.image || ''}','${t.title}')"><h4 class="text-base font-black text-[#4A3F35] truncate">${t.title}</h4><p class="text-[11px] font-black text-amber-500">${t.expiry || '無限期'}</p></div>
+                                    <div class="w-16 h-16 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-100" onclick="zoomImage('${t.image || ''}','${t.title}', '${t.sn || ''}')">${t.image ? `<img src="${t.image}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-black text-amber-100 text-xs">NO IMG</div>`}</div>
+                                    <div class="flex-1 min-w-0" onclick="zoomImage('${t.image || ''}','${t.title}', '${t.sn || ''}')">
+                                        <h4 class="text-base font-black text-[#4A3F35] truncate">${t.title}</h4>
+                                        <div class="flex items-center gap-2">
+                                            <p class="text-[11px] font-black text-amber-500">${t.noExpiry ? '無限期' : (t.expiry || '未設定')}</p>
+                                            ${t.sn ? `<span class="sn-badge">序號</span>` : ''}
+                                        </div>
+                                    </div>
                                     <div class="flex gap-2"><button onclick="openEditModal('${t.id}')" class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-50 text-gray-200"><svg class="w-4 h-4"><use xlink:href="#icon-edit"></use></svg></button><button onclick="toggleUsed('${t.id}')" class="w-10 h-10 rounded-full flex items-center justify-center ${t.used ? 'bg-green-500 text-white' : 'bg-amber-500 text-white shadow-md'}"><svg class="w-5 h-5"><use xlink:href="#icon-check"></use></svg></button></div>
                                 </div>
                             </div>
@@ -344,44 +400,150 @@
             localStorage.setItem('tikbox_v4_db', JSON.stringify(db));
         }
 
-        function saveFolder() {
-            const nameInput = document.getElementById('new-folder-name').value.trim();
-            if(!nameInput) return showToast('請輸入分類名稱');
-            const finalName = selectedEmoji ? `${selectedEmoji} ${nameInput}` : nameInput;
-            db.folders.push({ id: Date.now().toString(), name: finalName });
-            render();
-            closeFolderModal();
-            document.getElementById('new-folder-name').value = "";
-            selectedEmoji = "";
+        // 分類相關
+        function openFolderModal(id = null) {
+            const modal = document.getElementById('folder-modal');
+            const title = document.getElementById('folder-modal-title');
+            const nameInput = document.getElementById('new-folder-name');
+            const idInput = document.getElementById('editing-folder-id');
+            
+            modal.classList.remove('hidden');
             document.querySelectorAll('.quick-tag').forEach(t => t.classList.remove('selected'));
+            
+            if (id) {
+                const f = db.folders.find(x => x.id === id);
+                title.innerText = "編輯分類夾";
+                idInput.value = f.id;
+                const emojiMatch = f.name.match(/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/);
+                const emoji = emojiMatch ? emojiMatch[0] : "";
+                nameInput.value = f.name.replace(emoji, "").trim();
+                selectedEmoji = emoji;
+                if (emoji) {
+                    const btn = Array.from(document.querySelectorAll('.quick-tag')).find(b => b.innerText.includes(emoji));
+                    if (btn) btn.classList.add('selected');
+                }
+            } else {
+                title.innerText = "新分類夾";
+                idInput.value = "";
+                nameInput.value = "";
+                selectedEmoji = "";
+            }
         }
 
-        // 功能邏輯
+        function closeFolderModal() { document.getElementById('folder-modal').classList.add('hidden'); }
+
+        function saveFolder() {
+            const nameInput = document.getElementById('new-folder-name').value.trim();
+            const editingId = document.getElementById('editing-folder-id').value;
+            if(!nameInput) return showToast('請輸入分類名稱');
+            
+            const finalName = selectedEmoji ? `${selectedEmoji} ${nameInput}` : nameInput;
+            
+            if (editingId) {
+                const idx = db.folders.findIndex(f => f.id === editingId);
+                db.folders[idx].name = finalName;
+            } else {
+                db.folders.push({ id: Date.now().toString(), name: finalName });
+            }
+            
+            render();
+            closeFolderModal();
+        }
+
+        function deleteFolder(id) { if(id === 'default') return showToast('預設分類不能刪除'); if(confirm('刪除分類會連同票券一起刪除，確定？')){ db.folders=db.folders.filter(x=>x.id!==id); db.tickets=db.tickets.filter(x=>x.folderId!==id); render(); }}
+
+        // 點數相關
         function togglePointHistory() { showPointHistory = !showPointHistory; render(); }
         function openPointModal() { document.getElementById('editing-point-id').value = ""; document.getElementById('point-name').value = ""; document.getElementById('point-value').value = ""; document.getElementById('point-modal').classList.remove('hidden'); }
         function openEditPointModal(id) { const p=db.points.find(x=>x.id===id); document.getElementById('editing-point-id').value=p.id; document.getElementById('point-name').value=p.name; document.getElementById('point-value').value=p.value; document.getElementById('point-expiry').value=p.expiry; document.getElementById('point-modal').classList.remove('hidden'); }
         function closePointModal() { document.getElementById('point-modal').classList.add('hidden'); }
         function savePoint() { const id=document.getElementById('editing-point-id').value, n=document.getElementById('point-name').value.trim(), v=document.getElementById('point-value').value, e=document.getElementById('point-expiry').value; if(!n||!v||!e) return; if(id){ const i=db.points.findIndex(x=>x.id===id); db.points[i]={id,name:n,value:v,expiry:e,used:db.points[i].used}; } else { db.points.push({id:Date.now().toString(),name:n,value:v,expiry:e,used:false}); } closePointModal(); render(); }
         
+        // 票券導航
         function openFolder(id) { currentFolderId = id; const f = db.folders.find(x => x.id === id); document.getElementById('current-folder-name').innerText = f.name; document.getElementById('back-btn').classList.remove('hidden'); document.getElementById('home-view').classList.add('hidden'); document.getElementById('folder-view').classList.remove('hidden'); render(); }
         function goHome() { currentFolderId = null; document.getElementById('back-btn').classList.add('hidden'); document.getElementById('home-view').classList.remove('hidden'); document.getElementById('folder-view').classList.add('hidden'); render(); }
         
-        function openAddModal() { document.getElementById('editing-ticket-id').value = ""; document.getElementById('title').value = ""; tempImg = null; document.getElementById('img-output').classList.add('hidden'); document.getElementById('upload-hint').classList.remove('hidden'); document.getElementById('ticket-modal').classList.remove('hidden'); }
-        function openEditModal(id) { const t=db.tickets.find(x=>x.id===id); document.getElementById('editing-ticket-id').value=t.id; document.getElementById('title').value=t.title; document.getElementById('ticket-folder-select').value=t.folderId; document.getElementById('expiry').value=t.expiry; tempImg=t.image; if(tempImg){ document.getElementById('img-output').src=tempImg; document.getElementById('img-output').classList.remove('hidden'); document.getElementById('upload-hint').classList.add('hidden'); } document.getElementById('ticket-modal').classList.remove('hidden'); }
+        // 票券編輯
+        function openAddModal() { 
+            document.getElementById('editing-ticket-id').value = ""; 
+            document.getElementById('title').value = ""; 
+            document.getElementById('sn-input').value = ""; 
+            document.getElementById('no-expiry-toggle').checked = false;
+            toggleExpiryInput();
+            tempImg = null; 
+            document.getElementById('img-output').classList.add('hidden'); 
+            document.getElementById('upload-hint').classList.remove('hidden'); 
+            document.getElementById('ticket-modal').classList.remove('hidden'); 
+        }
+        function openEditModal(id) { 
+            const t=db.tickets.find(x=>x.id===id); 
+            document.getElementById('editing-ticket-id').value=t.id; 
+            document.getElementById('title').value=t.title; 
+            document.getElementById('sn-input').value=t.sn || ""; 
+            document.getElementById('ticket-folder-select').value=t.folderId; 
+            document.getElementById('expiry').value=t.expiry || ""; 
+            document.getElementById('no-expiry-toggle').checked = t.noExpiry || false;
+            toggleExpiryInput();
+            tempImg=t.image; 
+            if(tempImg){ 
+                document.getElementById('img-output').src=tempImg; 
+                document.getElementById('img-output').classList.remove('hidden'); 
+                document.getElementById('upload-hint').classList.add('hidden'); 
+            } 
+            document.getElementById('ticket-modal').classList.remove('hidden'); 
+        }
         function closeAddModal() { document.getElementById('ticket-modal').classList.add('hidden'); }
-        function saveTicket() { const id=document.getElementById('editing-ticket-id').value, t=document.getElementById('title').value.trim(), f=document.getElementById('ticket-folder-select').value, e=document.getElementById('expiry').value; if(!t) return; const data={id:id||Date.now().toString(),title:t,folderId:f,expiry:e,image:tempImg,used:false}; if(id){ const idx=db.tickets.findIndex(x=>x.id===id); data.used=db.tickets[idx].used; db.tickets[idx]=data; } else { db.tickets.push(data); } closeAddModal(); render(); }
+        function saveTicket() { 
+            const id=document.getElementById('editing-ticket-id').value, 
+                  t=document.getElementById('title').value.trim(), 
+                  s=document.getElementById('sn-input').value.trim(), 
+                  f=document.getElementById('ticket-folder-select').value, 
+                  e=document.getElementById('expiry').value,
+                  nx=document.getElementById('no-expiry-toggle').checked;
+            if(!t) return; 
+            const data={id:id||Date.now().toString(),title:t,sn:s,folderId:f,expiry:e,noExpiry:nx,image:tempImg,used:false}; 
+            if(id){ 
+                const idx=db.tickets.findIndex(x=>x.id===id); 
+                data.used=db.tickets[idx].used; 
+                db.tickets[idx]=data; 
+            } else { 
+                db.tickets.push(data); 
+            } 
+            closeAddModal(); render(); 
+        }
         
         function toggleUsed(id) { const t=db.tickets.find(x=>x.id===id); if(t){ t.used=!t.used; render(); }}
-        function deleteFolder(id) { if(confirm('刪除分類會連同票券一起刪除，確定？')){ db.folders=db.folders.filter(x=>x.id!==id); db.tickets=db.tickets.filter(x=>x.folderId!==id); render(); }}
         function deleteTicket(id) { db.tickets=db.tickets.filter(x=>x.id!==id); render(); }
-        function openFolderModal() { document.getElementById('folder-modal').classList.remove('hidden'); }
-        function closeFolderModal() { document.getElementById('folder-modal').classList.add('hidden'); }
         function handleFile(i) { const r=new FileReader(); r.onload=e=>{ tempImg=e.target.result; document.getElementById('img-output').src=tempImg; document.getElementById('img-output').classList.remove('hidden'); document.getElementById('upload-hint').classList.add('hidden'); }; r.readAsDataURL(i.files[0]); }
         function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('opacity-100'); setTimeout(()=>t.classList.remove('opacity-100'),2000); }
         function setTab(t) { currentTab=t; render(); }
-        function zoomImage(s, t) { if(!s)return; document.getElementById('lightbox-img').src=s; document.getElementById('lightbox-title').innerText=t; document.getElementById('image-lightbox').style.display='flex'; }
-        function closeLightbox() { document.getElementById('image-lightbox').style.display='none'; }
         
+        // 燈箱與複制
+        let currentLightboxSN = "";
+        function zoomImage(s, t, sn) { 
+            if(!s) return; 
+            document.getElementById('lightbox-img').src=s; 
+            document.getElementById('lightbox-title').innerText=t; 
+            document.getElementById('lightbox-sn').innerText=sn ? `序號：${sn}` : ""; 
+            currentLightboxSN = sn;
+            const copyBtn = document.getElementById('lightbox-copy-btn');
+            if(sn) copyBtn.classList.remove('hidden');
+            else copyBtn.classList.add('hidden');
+            document.getElementById('image-lightbox').style.display='flex'; 
+        }
+        function closeLightbox() { document.getElementById('image-lightbox').style.display='none'; }
+        function copySNFromLightbox() {
+            if(!currentLightboxSN) return;
+            const el = document.createElement('textarea');
+            el.value = currentLightboxSN;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            showToast('序號已複製');
+        }
+        
+        // 滑動刪除
         let startX=0, activeSwipeId=null;
         function handleTouchStart(e,id){startX=e.touches[0].clientX;activeSwipeId=id;document.getElementById(`content-${id}`).style.transition='none';}
         function handleTouchMove(e,id){let x=e.touches[0].clientX-startX;if(x>0)x=0;if(x<-100)x=-100;document.getElementById(`content-${id}`).style.transform=`translateX(${x}px)`;}
