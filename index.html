@@ -4,15 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- PWA 基本設定 -->
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/qkzkqg4j4b-ship-it/Tikbox/refs/heads/main/IMG_8203.jpeg">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="icon" sizes="192x192" href="https://raw.githubusercontent.com/qkzkqg4j4b-ship-it/Tikbox/refs/heads/main/IMG_8203.jpeg">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="TikBox">
+    <meta name="apple-mobile-web-app-title" content="Tixbox">
 
-    <title>TikBox v4.1</title>
+    <title>Tixbox v4.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
@@ -27,104 +26,66 @@
             user-select: none;
         }
 
-        /* 長條型分類卡片 */
         .folder-strip {
             background: #FFFFFF;
-            border-radius: 20px;
+            border-radius: 22px;
             border: 1px solid #F0EDE8;
             padding: 16px 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             transition: all 0.2s ease;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.01);
         }
-        .folder-strip:active { transform: scale(0.98); background-color: #FAFAFA; }
+        .folder-strip:active { transform: scale(0.97); background-color: #FAFAFA; }
 
-        /* 點數卡片 */
-        .point-card {
-            background: #FFFFFF;
-            border-radius: 20px;
-            border: 1px solid #F0EDE8;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        .emoji-icon {
+            width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; border-radius: 14px; background: #FDF8F0;
         }
 
-        /* 滑動刪除容器 */
         .swipe-container {
-            position: relative;
-            overflow: hidden;
-            border-radius: 20px;
-            touch-action: pan-y;
-            margin-bottom: 1rem;
+            position: relative; overflow: hidden; border-radius: 24px;
+            touch-action: pan-y; margin-bottom: 1rem;
         }
 
         .swipe-content {
-            position: relative;
-            background: #FFFFFF;
-            z-index: 2;
+            position: relative; background: #FFFFFF; z-index: 2;
             transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
-            border: 1px solid #F0EDE8;
-            border-radius: 20px;
+            border: 1px solid #F0EDE8; border-radius: 24px;
         }
 
         .swipe-action {
-            position: absolute;
-            right: 0;
-            top: 0;
-            height: 100%;
-            width: 80px;
-            background: #FF4B4B;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1;
-            border-radius: 0 20px 20px 0;
+            position: absolute; right: 0; top: 0; height: 100%; width: 80px;
+            background: #FF4B4B; color: white; display: flex; align-items: center;
+            justify-content: center; z-index: 1; border-radius: 0 24px 24px 0;
         }
 
-        /* 頁籤樣式 */
-        .tab-active { color: #F59E0B; font-weight: 700; }
+        .tab-active { color: #F59E0B; font-weight: 900; }
         .tab-active::after {
-            content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
-            width: 20px; height: 3px; background: #F59E0B; border-radius: 10px;
+            content: ''; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+            width: 16px; height: 4px; background: #F59E0B; border-radius: 10px;
         }
 
-        .add-btn { background: #F59E0B; box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3); }
+        .add-btn { background: #F59E0B; box-shadow: 0 10px 30px rgba(245, 158, 11, 0.4); }
         .safe-pb { padding-bottom: env(safe-area-inset-bottom); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* 圖片縮放檢視器 */
         #image-lightbox {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: #000000;
-            z-index: 100;
-            touch-action: none;
-            overflow: hidden;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: none; position: fixed; inset: 0; background: #000;
+            z-index: 100; touch-action: none; flex-direction: column;
+            align-items: center; justify-content: center;
         }
-        #lightbox-img-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            will-change: transform;
-        }
-        #lightbox-img {
-            max-width: 100%;
-            max-height: 100%;
-            transition: transform 0.1s ease-out;
-            transform-origin: center center;
-        }
+        #lightbox-img { max-width: 100%; max-height: 100%; transition: transform 0.1s ease-out; }
 
-        /* 切換開關樣式 */
-        .toggle-dot { transition: all 0.3s ease; }
-        input:checked ~ .toggle-dot { transform: translateX(100%); background-color: #F59E0B; }
-        input:checked ~ .toggle-bg { background-color: #FEF3C7; border-color: #FDE68A; }
+        .quick-tag {
+            padding: 10px 16px; border-radius: 14px; background: #F7F5F2;
+            font-size: 13px; font-weight: 700; color: #8C8479;
+            transition: all 0.2s; border: 2px solid transparent;
+        }
+        .quick-tag.selected { background: #FEF3C7; color: #F59E0B; border-color: #FDE68A; }
 
         .date-input-container {
             position: relative; background: #F8F6F2; border-radius: 16px; padding: 14px 16px; margin-top: 8px;
@@ -135,74 +96,71 @@
 </head>
 <body class="safe-pb">
 
-    <!-- 圖示庫 -->
     <svg style="display: none;">
-        <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></symbol>
+        <symbol id="icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></symbol>
         <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></symbol>
-        <symbol id="icon-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></symbol>
-        <symbol id="icon-coins" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path><path d="M7 6h1v4"></path><path d="M17.22 15.22a4 4 0 1 0-2.22 2.22"></symbol>
+        <symbol id="icon-coins" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"></circle><path d="M18.09 10.37A6 6 0 1 1 10.34 18"></path><path d="M7 6h1v4"></path></symbol>
         <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></symbol>
-        <symbol id="icon-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></symbol>
-        <symbol id="icon-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></symbol>
+        <symbol id="icon-chevron-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></symbol>
+        <symbol id="icon-chevron-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></symbol>
         <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></symbol>
-        <symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></symbol>
+        <symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></symbol>
     </svg>
 
-    <!-- 圖片放大檢視層 -->
+    <!-- 圖片放大 -->
     <div id="image-lightbox">
-        <div id="lightbox-img-container">
+        <div id="lightbox-img-container" class="w-full h-full flex items-center justify-center">
             <img id="lightbox-img" src="">
         </div>
         <div class="absolute top-0 left-0 w-full p-6 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent">
-            <p id="lightbox-title" class="text-white font-bold text-sm"></p>
-            <button onclick="closeLightbox()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
+            <p id="lightbox-title" class="text-white font-black text-sm"></p>
+            <button onclick="closeLightbox()" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white backdrop-blur-md">
                 <svg class="w-6 h-6" stroke="currentColor"><use xlink:href="#icon-x"></use></svg>
             </button>
         </div>
-        <div class="absolute bottom-10 text-white/40 text-[10px] font-bold tracking-widest uppercase">雙指可縮放照片以便掃描</div>
     </div>
 
-    <!-- 主程式介面 -->
+    <!-- 主介面 -->
     <div id="app" class="max-w-md mx-auto min-h-screen flex flex-col">
-        <header class="px-7 pt-12 pb-6 flex items-center justify-between">
+        <header class="px-7 pt-14 pb-8 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <button id="back-btn" onclick="goHome()" class="hidden w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm">
+                <button id="back-btn" onclick="goHome()" class="hidden w-11 h-11 rounded-full bg-white border border-gray-100 flex items-center justify-center shadow-sm">
                     <svg class="w-5 h-5 text-[#4A3F35]"><use xlink:href="#icon-chevron-left"></use></svg>
                 </button>
-                <div onclick="goHome()" class="cursor-pointer">
-                    <p class="text-[0.75rem] font-bold text-amber-500 uppercase opacity-80 mb-0.5">我的數位錢包</p>
-                    <h1 class="text-3xl font-black text-[#4A3F35] tracking-tight">TikBox</h1>
+                <div onclick="goHome()">
+                    <p class="text-[11px] font-black text-amber-500 uppercase tracking-[2px] mb-1">我的票倉</p>
+                    <h1 class="text-3xl font-black text-[#4A3F35] tracking-tighter">Tixbox</h1>
                 </div>
             </div>
-            <div id="version-tag" class="text-[10px] font-bold text-gray-300 bg-gray-100 px-2 py-1 rounded-md">v4.1</div>
+            <div class="text-[10px] font-bold text-gray-300 bg-gray-100 px-2 py-1 rounded-md">v4.4</div>
         </header>
 
         <main id="home-view" class="flex-1 px-6 pb-32">
-            <!-- 點數列表區 -->
+            <!-- 點數區塊 -->
             <div class="mb-10">
                 <div class="flex justify-between items-center mb-5 px-1">
-                    <h2 class="text-sm font-black text-gray-400 uppercase tracking-widest">到期點數</h2>
+                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest">到期點數</h2>
                     <div class="flex gap-2">
-                        <button onclick="togglePointHistory()" id="point-history-btn" class="text-[10px] font-bold text-gray-400 border border-gray-200 px-2 py-1 rounded-lg">歷史紀錄</button>
-                        <button onclick="openPointModal()" class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl">+ 新增</button>
+                        <button onclick="togglePointHistory()" id="point-history-btn" class="text-[10px] font-bold text-gray-400 border border-gray-200 px-2.5 py-1.5 rounded-xl">歷史紀錄</button>
+                        <button onclick="openPointModal()" class="text-xs font-black text-blue-600 bg-blue-50 px-3.5 py-2 rounded-xl">+ 新增</button>
                     </div>
                 </div>
                 <div id="point-list" class="space-y-3"></div>
             </div>
 
-            <!-- 票券分類區 (長條型) -->
+            <!-- 分類區塊 -->
             <div>
                 <div class="flex justify-between items-center mb-5 px-1">
-                    <h2 class="text-sm font-black text-gray-400 uppercase tracking-widest">票券分類夾</h2>
-                    <button onclick="openFolderModal()" class="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-xl">+ 新增</button>
+                    <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest">票券分類夾</h2>
+                    <button onclick="openFolderModal()" class="text-xs font-black text-amber-600 bg-amber-50 px-3.5 py-2 rounded-xl">+ 新增分類</button>
                 </div>
-                <div id="folder-list" class="space-y-2.5"></div>
+                <div id="folder-list" class="space-y-3"></div>
             </div>
         </main>
 
-        <!-- 票券清單視圖 -->
+        <!-- 票券列表視圖 -->
         <main id="folder-view" class="flex-1 px-6 pb-32 hidden">
-            <div class="mb-6"><span id="current-folder-name" class="text-xl font-black text-[#4A3F35]"></span></div>
+            <div class="mb-6"><span id="current-folder-name" class="text-2xl font-black text-[#4A3F35]"></span></div>
             <nav class="flex px-2 gap-8 mb-6 overflow-x-auto no-scrollbar border-b border-gray-100 pb-3">
                 <button onclick="setTab('unused')" id="btn-unused" class="text-sm font-bold transition-all relative tab-active">未使用</button>
                 <button onclick="setTab('used')" id="btn-used" class="text-sm font-bold text-gray-300 transition-all relative">已使用</button>
@@ -211,10 +169,36 @@
             <div id="ticket-list" class="space-y-4"></div>
         </main>
 
-        <!-- 懸浮新增按鈕 -->
-        <button id="main-add-btn" onclick="openAddModal()" class="fixed bottom-10 right-8 w-16 h-16 add-btn text-white rounded-full flex items-center justify-center z-40 active:scale-90 transition-transform shadow-lg">
+        <button id="main-add-btn" onclick="openAddModal()" class="fixed bottom-10 right-8 w-16 h-16 add-btn text-white rounded-full flex items-center justify-center z-40 active:scale-90 transition-transform shadow-xl">
             <svg class="w-8 h-8" stroke="white"><use xlink:href="#icon-plus"></use></svg>
         </button>
+
+        <!-- 分類 Modal (優化版) -->
+        <div id="folder-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-8">
+            <div class="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl">
+                <h3 class="text-xl font-black mb-6 text-center">新分類夾</h3>
+                
+                <div class="mb-6">
+                    <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-3 ml-1">1. 選擇圖示類別</p>
+                    <div class="flex flex-wrap gap-2 mb-6" id="quick-tag-container">
+                        <button onclick="selectQuickTag(this, '🍔')" class="quick-tag">食物 🍔</button>
+                        <button onclick="selectQuickTag(this, '🏪')" class="quick-tag">超商 🏪</button>
+                        <button onclick="selectQuickTag(this, '☕️')" class="quick-tag">咖啡 ☕️</button>
+                        <button onclick="selectQuickTag(this, '💄')" class="quick-tag">美妝 💄</button>
+                        <button onclick="selectQuickTag(this, '🛍️')" class="quick-tag">百貨 🛍️</button>
+                        <button onclick="selectQuickTag(this, '🥤')" class="quick-tag">飲料 🥤</button>
+                    </div>
+                    
+                    <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest mb-3 ml-1">2. 輸入分類名稱 (如：摩斯漢堡)</p>
+                    <input id="new-folder-name" type="text" placeholder="名稱..." class="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none border-2 border-transparent focus:border-amber-100 transition-all">
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="closeFolderModal()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-gray-400 text-sm">取消</button>
+                    <button onclick="saveFolder()" class="flex-1 py-4 bg-amber-500 rounded-2xl font-bold text-white text-sm shadow-lg">建立</button>
+                </div>
+            </div>
+        </div>
 
         <!-- 點數 Modal -->
         <div id="point-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-8">
@@ -223,23 +207,15 @@
                 <input type="hidden" id="editing-point-id">
                 <div class="space-y-4">
                     <input id="point-name" type="text" placeholder="店家名稱" class="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none">
-                    <input id="point-value" type="number" placeholder="剩餘點數" class="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none">
+                    <input id="point-value" type="number" placeholder="點數數量" class="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none">
                     <div class="date-input-container">
                         <span id="point-date-text" class="text-sm font-bold text-gray-400">到期日</span>
                         <input id="point-expiry" type="date" class="native-date-input" onchange="document.getElementById('point-date-text').innerText=this.value">
                     </div>
-                    <div id="point-status-container" class="hidden flex items-center justify-between px-2 pt-2">
-                        <span class="text-xs font-bold text-gray-400">已全數用完</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="point-used-toggle" class="sr-only peer">
-                            <div class="w-11 h-6 bg-gray-100 rounded-full peer toggle-bg border border-gray-200"></div>
-                            <div class="absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow-sm toggle-dot"></div>
-                        </label>
-                    </div>
                 </div>
                 <div class="flex gap-3 mt-8">
                     <button onclick="closePointModal()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-gray-400 text-sm">取消</button>
-                    <button onclick="savePoint()" class="flex-1 py-4 bg-blue-500 rounded-2xl font-bold text-white text-sm shadow-lg">儲存</button>
+                    <button onclick="savePoint()" class="flex-1 py-4 bg-blue-500 rounded-2xl font-bold text-white text-sm">儲存</button>
                 </div>
             </div>
         </div>
@@ -248,7 +224,7 @@
         <div id="ticket-modal" class="fixed inset-0 bg-white z-50 hidden overflow-y-auto">
             <div class="px-8 pt-16 pb-12">
                 <div class="flex justify-between items-center mb-8">
-                    <h2 id="modal-title" class="text-2xl font-black">存入票券</h2>
+                    <h2 class="text-2xl font-black">存入票券</h2>
                     <button onclick="closeAddModal()" class="text-gray-300"><svg class="w-8 h-8"><use xlink:href="#icon-x"></use></svg></button>
                 </div>
                 <input type="hidden" id="editing-ticket-id">
@@ -256,31 +232,19 @@
                     <div onclick="document.getElementById('file-input').click()" class="aspect-video bg-[#F9F7F4] rounded-[32px] border-2 border-dashed border-[#EAE2D6] flex flex-col items-center justify-center overflow-hidden relative">
                         <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleFile(this)">
                         <img id="img-output" class="hidden w-full h-full object-cover">
-                        <div id="upload-hint" class="text-center text-gray-300 font-bold uppercase text-[10px]">
-                            <svg class="w-10 h-10 mx-auto mb-2 opacity-20"><use xlink:href="#icon-edit"></use></svg>
-                            點擊上傳截圖
-                        </div>
+                        <div id="upload-hint" class="text-center text-gray-300 font-black uppercase text-[10px] tracking-widest">點擊上傳票券截圖</div>
                     </div>
                     <div class="space-y-5">
                         <div class="border-b border-gray-100 pb-2">
-                            <label class="text-[10px] font-black text-amber-500 uppercase">分類</label>
-                            <select id="ticket-folder-select" class="w-full bg-transparent border-none py-1 text-lg font-bold outline-none"></select>
+                            <label class="text-[10px] font-black text-amber-500 uppercase tracking-widest">存入分類</label>
+                            <select id="ticket-folder-select" class="w-full bg-transparent border-none py-1 text-lg font-black outline-none"></select>
                         </div>
                         <div class="border-b border-gray-100 pb-2">
-                            <label class="text-[10px] font-black text-amber-500 uppercase">票券名稱</label>
-                            <input id="title" type="text" placeholder="如：拿鐵兌換券" class="w-full bg-transparent border-none py-1 text-lg font-bold outline-none">
-                        </div>
-                        <div class="flex items-center justify-between pt-2">
-                            <label class="text-[10px] font-black text-amber-500 uppercase">效期</label>
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <span class="mr-3 text-xs font-bold text-gray-400">無期限</span>
-                                <input type="checkbox" id="no-expiry-toggle" class="sr-only peer" onchange="document.getElementById('expiry-input-wrapper').style.display=this.checked?'none':'block'">
-                                <div class="w-11 h-6 bg-gray-100 rounded-full peer toggle-bg border border-gray-200"></div>
-                                <div class="absolute left-[3.3rem] top-1 bg-white w-4 h-4 rounded-full shadow-sm toggle-dot"></div>
-                            </label>
+                            <label class="text-[10px] font-black text-amber-500 uppercase tracking-widest">票券名稱</label>
+                            <input id="title" type="text" placeholder="如：大薯買一送一" class="w-full bg-transparent border-none py-1 text-lg font-black outline-none">
                         </div>
                         <div id="expiry-input-wrapper" class="date-input-container">
-                            <span id="date-text" class="text-sm font-bold text-gray-300">請選取日期</span>
+                            <span id="date-text" class="text-sm font-bold text-gray-400">有效日期：選取</span>
                             <input id="expiry" type="date" class="native-date-input" onchange="document.getElementById('date-text').innerText=this.value">
                         </div>
                     </div>
@@ -289,103 +253,64 @@
             </div>
         </div>
 
-        <!-- 分類 Modal -->
-        <div id="folder-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-8">
-            <div class="bg-white w-full max-w-xs rounded-[32px] p-8 shadow-2xl text-center">
-                <h3 class="text-xl font-black mb-6">新增分類夾</h3>
-                <input id="new-folder-name" type="text" placeholder="如：咖啡、電影" class="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none mb-6">
-                <div class="flex gap-3">
-                    <button onclick="closeFolderModal()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-gray-400 text-sm">取消</button>
-                    <button onclick="saveFolder()" class="flex-1 py-4 bg-amber-500 rounded-2xl font-bold text-white text-sm">建立</button>
-                </div>
-            </div>
-        </div>
-
         <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-[#4A3F35] text-white px-8 py-3 rounded-full text-xs font-bold opacity-0 transition-all pointer-events-none z-[70]"></div>
     </div>
 
     <script>
-        /**
-         * 版本檢查機制：解決 PWA 快取不更新問題
-         */
-        const APP_VERSION = "4.1";
+        const APP_VERSION = "4.4";
         if (localStorage.getItem('tikbox_version') !== APP_VERSION) {
             localStorage.setItem('tikbox_version', APP_VERSION);
-            // 檢測到新版本時，清除部分快取並刷新
-            if ('caches' in window) {
-                caches.keys().then(names => {
-                    for (let name of names) caches.delete(name);
-                });
-            }
-            // 稍微延遲刷新，確保本地存儲已寫入
+            if ('caches' in window) caches.keys().then(ns => ns.forEach(n => caches.delete(n)));
             setTimeout(() => window.location.reload(true), 500);
         }
 
-        // 資料庫初始化
         let db = JSON.parse(localStorage.getItem('tikbox_v4_db')) || { folders: [], tickets: [], points: [] };
-        if (db.folders.length === 0) db.folders.push({ id: 'default', name: '一般票券' });
+        if (db.folders.length === 0) db.folders.push({ id: 'default', name: '一般票券 🎫' });
 
-        let currentFolderId = null;
-        let currentTab = 'unused';
-        let showPointHistory = false;
-        let tempImg = null;
-        let startX = 0;
-        let activeSwipeId = null;
+        let currentFolderId = null, currentTab = 'unused', showPointHistory = false, tempImg = null;
+        let selectedEmoji = "";
 
-        // 圖片縮放變數
-        let scale = 1, lastScale = 1, posX = 0, posY = 0, lastPosX = 0, lastPosY = 0;
-        let startDistance = 0, isDragging = false, touchStartX = 0, touchStartY = 0;
+        function selectQuickTag(btn, emoji) {
+            document.querySelectorAll('.quick-tag').forEach(t => t.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedEmoji = emoji;
+        }
 
         function render() {
             const folderList = document.getElementById('folder-list');
             const pointList = document.getElementById('point-list');
-            const todayStr = new Date().toISOString().split('T')[0];
+            const today = new Date().toISOString().split('T')[0];
 
             // 渲染點數
             const displayPoints = db.points.filter(p => showPointHistory ? p.used : !p.used);
             pointList.innerHTML = displayPoints.length === 0 
-                ? `<p class="text-center py-8 text-gray-300 text-[10px] font-bold border-2 border-dashed border-gray-100 rounded-2xl">尚無點數資料</p>`
+                ? `<div class="py-10 text-center text-gray-300 font-bold text-[11px] border-2 border-dashed border-gray-100 rounded-[24px]">尚無點數資料</div>`
                 : displayPoints.map(p => `
-                    <div class="point-card p-4 flex items-center justify-between ${p.used ? 'opacity-50 grayscale' : ''}">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div class="w-10 h-10 ${p.used ? 'bg-gray-100' : 'bg-blue-50'} rounded-full flex items-center justify-center text-blue-500 flex-shrink-0">
-                                <svg class="w-5 h-5"><use xlink:href="#icon-coins"></use></svg>
-                            </div>
-                            <div class="min-w-0">
-                                <h4 class="font-black text-sm text-[#4A3F35] truncate">${p.name}</h4>
-                                <p class="text-[10px] font-bold text-gray-400 uppercase">${p.expiry} ${p.used ? '已結案' : '到期'}</p>
-                            </div>
+                    <div class="point-card p-5 flex items-center justify-between ${p.used ? 'opacity-40 grayscale' : ''}">
+                        <div class="flex items-center gap-4 min-w-0">
+                            <div class="w-11 h-11 ${p.used ? 'bg-gray-100' : 'bg-blue-50'} rounded-full flex items-center justify-center text-blue-500"><svg class="w-6 h-6"><use xlink:href="#icon-coins"></use></svg></div>
+                            <div class="min-w-0"><h4 class="font-black text-sm text-[#4A3F35] truncate">${p.name}</h4><p class="text-[10px] font-black text-gray-400 uppercase tracking-wider">${p.expiry} 到期</p></div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <div class="text-right">
-                                <span class="text-lg font-black ${p.used ? 'text-gray-400' : 'text-blue-600'}">${p.value}</span>
-                                <span class="text-[10px] font-bold text-gray-300 uppercase">pt</span>
-                            </div>
-                            <button onclick="openEditPointModal('${p.id}')" class="p-2 text-gray-200 active:text-blue-400">
-                                <svg class="w-4 h-4"><use xlink:href="#icon-edit"></use></svg>
-                            </button>
-                        </div>
+                        <div class="flex items-center gap-2"><div class="text-right mr-1 font-black ${p.used ? 'text-gray-400' : 'text-blue-600'}">${p.value} pt</div><button onclick="openEditPointModal('${p.id}')" class="p-2 text-gray-200"><svg class="w-4 h-4"><use xlink:href="#icon-edit"></use></svg></button></div>
                     </div>
                 `).join('');
 
             // 渲染分類
             folderList.innerHTML = db.folders.map(f => {
                 const count = db.tickets.filter(t => t.folderId === f.id && !t.used).length;
+                const emoji = f.name.match(/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/) ? f.name.match(/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/)[0] : "🏷️";
+                const cleanName = f.name.replace(/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/, "").trim();
+
                 return `
-                    <div onclick="openFolder('${f.id}')" class="folder-strip group">
+                    <div onclick="openFolder('${f.id}')" class="folder-strip">
                         <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500">
-                                <svg class="w-5 h-5" stroke="currentColor"><use xlink:href="#icon-folder"></use></svg>
-                            </div>
+                            <div class="emoji-icon">${emoji}</div>
                             <div>
-                                <h3 class="font-black text-[#4A3F35]">${f.name}</h3>
-                                <p class="text-[10px] font-bold text-gray-300 uppercase tracking-widest">${count} 張可用</p>
+                                <h3 class="font-black text-sm text-[#4A3F35]">${cleanName}</h3>
+                                <p class="text-[10px] font-black text-gray-300 uppercase tracking-widest">${count} 張可用</p>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="event.stopPropagation(); deleteFolder('${f.id}')" class="p-2 text-gray-100 hover:text-red-300"><svg class="w-4 h-4" stroke="currentColor"><use xlink:href="#icon-trash"></use></svg></button>
-                            <svg class="w-5 h-5 text-gray-200"><use xlink:href="#icon-chevron-right"></use></svg>
-                        </div>
+                        <div class="flex items-center gap-2"><button onclick="event.stopPropagation(); deleteFolder('${f.id}')" class="p-2 text-gray-100 hover:text-red-300"><svg class="w-4 h-4"><use xlink:href="#icon-trash"></use></svg></button><svg class="w-5 h-5 text-gray-200"><use xlink:href="#icon-chevron-right"></use></svg></div>
                     </div>
                 `;
             }).join('');
@@ -394,33 +319,22 @@
             if (currentFolderId) {
                 const filtered = db.tickets.filter(t => {
                     if (t.folderId !== currentFolderId) return false;
-                    const expired = t.expiry !== 'no-limit' && t.expiry < todayStr;
+                    const expired = t.expiry && t.expiry < today;
                     if (currentTab === 'expired') return expired && !t.used;
                     if (currentTab === 'used') return t.used;
                     return !t.used && !expired;
                 });
 
                 document.getElementById('ticket-list').innerHTML = filtered.length === 0 
-                    ? `<div class="text-center py-20 text-gray-300 font-bold text-sm">此分類暫無票券</div>`
+                    ? `<div class="py-24 text-center text-gray-300 font-black text-sm">此分類尚無票券</div>`
                     : filtered.map(t => `
                         <div class="swipe-container" id="container-${t.id}">
                             <div class="swipe-action" onclick="deleteTicket('${t.id}')"><svg class="w-6 h-6"><use xlink:href="#icon-trash"></use></svg></div>
-                            <div class="swipe-content p-5" id="content-${t.id}"
-                                 ontouchstart="handleTouchStart(event, '${t.id}')" 
-                                 ontouchmove="handleTouchMove(event, '${t.id}')" 
-                                 ontouchend="handleTouchEnd(event, '${t.id}')">
+                            <div class="swipe-content p-5" id="content-${t.id}" ontouchstart="handleTouchStart(event,'${t.id}')" ontouchmove="handleTouchMove(event,'${t.id}')" ontouchend="handleTouchEnd(event,'${t.id}')">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-14 h-14 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-100" onclick="zoomImage('${t.image || ''}', '${t.title}')">
-                                        ${t.image ? `<img src="${t.image}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-black text-amber-200">票</div>`}
-                                    </div>
-                                    <div class="flex-1 min-w-0" onclick="zoomImage('${t.image || ''}', '${t.title}')">
-                                        <h4 class="text-base font-black text-[#4A3F35] truncate">${t.title}</h4>
-                                        <p class="text-xs font-bold ${t.expiry === 'no-limit' ? 'text-blue-400' : 'text-amber-500'}">${t.expiry === 'no-limit' ? '無期限' : t.expiry + ' 截止'}</p>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <button onclick="openEditModal('${t.id}')" class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-50 text-gray-200"><svg class="w-4 h-4"><use xlink:href="#icon-edit"></use></svg></button>
-                                        <button onclick="toggleUsed('${t.id}')" class="w-10 h-10 rounded-full flex items-center justify-center ${t.used ? 'bg-green-500 text-white' : 'bg-amber-500 text-white shadow-md'}"><svg class="w-5 h-5"><use xlink:href="#icon-check"></use></svg></button>
-                                    </div>
+                                    <div class="w-16 h-16 rounded-2xl overflow-hidden bg-gray-50 flex-shrink-0 border border-gray-100" onclick="zoomImage('${t.image || ''}','${t.title}')">${t.image ? `<img src="${t.image}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center font-black text-amber-100 text-xs">NO IMG</div>`}</div>
+                                    <div class="flex-1 min-w-0" onclick="zoomImage('${t.image || ''}','${t.title}')"><h4 class="text-base font-black text-[#4A3F35] truncate">${t.title}</h4><p class="text-[11px] font-black text-amber-500">${t.expiry || '無限期'}</p></div>
+                                    <div class="flex gap-2"><button onclick="openEditModal('${t.id}')" class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-50 text-gray-200"><svg class="w-4 h-4"><use xlink:href="#icon-edit"></use></svg></button><button onclick="toggleUsed('${t.id}')" class="w-10 h-10 rounded-full flex items-center justify-center ${t.used ? 'bg-green-500 text-white' : 'bg-amber-500 text-white shadow-md'}"><svg class="w-5 h-5"><use xlink:href="#icon-check"></use></svg></button></div>
                                 </div>
                             </div>
                         </div>
@@ -430,132 +344,48 @@
             localStorage.setItem('tikbox_v4_db', JSON.stringify(db));
         }
 
-        // --- 功能邏輯 ---
+        function saveFolder() {
+            const nameInput = document.getElementById('new-folder-name').value.trim();
+            if(!nameInput) return showToast('請輸入分類名稱');
+            const finalName = selectedEmoji ? `${selectedEmoji} ${nameInput}` : nameInput;
+            db.folders.push({ id: Date.now().toString(), name: finalName });
+            render();
+            closeFolderModal();
+            document.getElementById('new-folder-name').value = "";
+            selectedEmoji = "";
+            document.querySelectorAll('.quick-tag').forEach(t => t.classList.remove('selected'));
+        }
+
+        // 功能邏輯
         function togglePointHistory() { showPointHistory = !showPointHistory; render(); }
-        function openPointModal() { 
-            document.getElementById('point-modal-title').innerText = "新增點數";
-            document.getElementById('editing-point-id').value = "";
-            document.getElementById('point-name').value = ""; document.getElementById('point-value').value = ""; 
-            document.getElementById('point-date-text').innerText = "到期日";
-            document.getElementById('point-status-container').classList.add('hidden');
-            document.getElementById('point-modal').classList.remove('hidden'); 
-        }
-        function openEditPointModal(id) {
-            const p = db.points.find(x => x.id === id);
-            document.getElementById('point-modal-title').innerText = "編輯點數";
-            document.getElementById('editing-point-id').value = p.id;
-            document.getElementById('point-name').value = p.name;
-            document.getElementById('point-value').value = p.value;
-            document.getElementById('point-expiry').value = p.expiry;
-            document.getElementById('point-date-text').innerText = p.expiry;
-            document.getElementById('point-used-toggle').checked = p.used || false;
-            document.getElementById('point-status-container').classList.remove('hidden');
-            document.getElementById('point-modal').classList.remove('hidden');
-        }
-        function savePoint() {
-            const id = document.getElementById('editing-point-id').value;
-            const name = document.getElementById('point-name').value.trim();
-            const value = document.getElementById('point-value').value;
-            const expiry = document.getElementById('point-expiry').value;
-            const used = document.getElementById('point-used-toggle').checked;
-            if(!name || !value || !expiry) return showToast('資料不完整');
-            if (id) {
-                const idx = db.points.findIndex(x => x.id === id);
-                db.points[idx] = { id, name, value, expiry, used };
-            } else {
-                db.points.push({ id: Date.now().toString(), name, value, expiry, used: false });
-            }
-            db.points.sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
-            closePointModal(); render();
-        }
+        function openPointModal() { document.getElementById('editing-point-id').value = ""; document.getElementById('point-name').value = ""; document.getElementById('point-value').value = ""; document.getElementById('point-modal').classList.remove('hidden'); }
+        function openEditPointModal(id) { const p=db.points.find(x=>x.id===id); document.getElementById('editing-point-id').value=p.id; document.getElementById('point-name').value=p.name; document.getElementById('point-value').value=p.value; document.getElementById('point-expiry').value=p.expiry; document.getElementById('point-modal').classList.remove('hidden'); }
         function closePointModal() { document.getElementById('point-modal').classList.add('hidden'); }
-        function openFolder(id) { currentFolderId = id; document.getElementById('current-folder-name').innerText = db.folders.find(f => f.id === id).name; document.getElementById('back-btn').classList.remove('hidden'); document.getElementById('home-view').classList.add('hidden'); document.getElementById('folder-view').classList.remove('hidden'); render(); }
+        function savePoint() { const id=document.getElementById('editing-point-id').value, n=document.getElementById('point-name').value.trim(), v=document.getElementById('point-value').value, e=document.getElementById('point-expiry').value; if(!n||!v||!e) return; if(id){ const i=db.points.findIndex(x=>x.id===id); db.points[i]={id,name:n,value:v,expiry:e,used:db.points[i].used}; } else { db.points.push({id:Date.now().toString(),name:n,value:v,expiry:e,used:false}); } closePointModal(); render(); }
+        
+        function openFolder(id) { currentFolderId = id; const f = db.folders.find(x => x.id === id); document.getElementById('current-folder-name').innerText = f.name; document.getElementById('back-btn').classList.remove('hidden'); document.getElementById('home-view').classList.add('hidden'); document.getElementById('folder-view').classList.remove('hidden'); render(); }
         function goHome() { currentFolderId = null; document.getElementById('back-btn').classList.add('hidden'); document.getElementById('home-view').classList.remove('hidden'); document.getElementById('folder-view').classList.add('hidden'); render(); }
         
-        function saveTicket() {
-            const id = document.getElementById('editing-ticket-id').value;
-            const title = document.getElementById('title').value.trim();
-            const folderId = document.getElementById('ticket-folder-select').value;
-            const isNo = document.getElementById('no-expiry-toggle').checked;
-            const exp = document.getElementById('expiry').value;
-            if (!title || (!isNo && !exp)) return showToast('請輸入票券資訊');
-            const data = { id: id || Date.now().toString(), title, folderId, expiry: isNo ? 'no-limit' : exp, image: tempImg, used: false };
-            if (id) { const idx = db.tickets.findIndex(x => x.id === id); data.used = db.tickets[idx].used; db.tickets[idx] = data; } else { db.tickets.push(data); }
-            closeAddModal(); render();
-        }
-        function openEditModal(id) {
-            const t = db.tickets.find(x => x.id === id);
-            document.getElementById('editing-ticket-id').value = t.id;
-            document.getElementById('title').value = t.title;
-            document.getElementById('ticket-folder-select').value = t.folderId;
-            document.getElementById('no-expiry-toggle').checked = t.expiry === 'no-limit';
-            document.getElementById('date-text').innerText = t.expiry === 'no-limit' ? '無期限' : t.expiry;
-            tempImg = t.image;
-            if(tempImg) { document.getElementById('img-output').src = tempImg; document.getElementById('img-output').classList.remove('hidden'); document.getElementById('upload-hint').classList.add('hidden'); }
-            document.getElementById('ticket-modal').classList.remove('hidden');
-        }
         function openAddModal() { document.getElementById('editing-ticket-id').value = ""; document.getElementById('title').value = ""; tempImg = null; document.getElementById('img-output').classList.add('hidden'); document.getElementById('upload-hint').classList.remove('hidden'); document.getElementById('ticket-modal').classList.remove('hidden'); }
+        function openEditModal(id) { const t=db.tickets.find(x=>x.id===id); document.getElementById('editing-ticket-id').value=t.id; document.getElementById('title').value=t.title; document.getElementById('ticket-folder-select').value=t.folderId; document.getElementById('expiry').value=t.expiry; tempImg=t.image; if(tempImg){ document.getElementById('img-output').src=tempImg; document.getElementById('img-output').classList.remove('hidden'); document.getElementById('upload-hint').classList.add('hidden'); } document.getElementById('ticket-modal').classList.remove('hidden'); }
         function closeAddModal() { document.getElementById('ticket-modal').classList.add('hidden'); }
+        function saveTicket() { const id=document.getElementById('editing-ticket-id').value, t=document.getElementById('title').value.trim(), f=document.getElementById('ticket-folder-select').value, e=document.getElementById('expiry').value; if(!t) return; const data={id:id||Date.now().toString(),title:t,folderId:f,expiry:e,image:tempImg,used:false}; if(id){ const idx=db.tickets.findIndex(x=>x.id===id); data.used=db.tickets[idx].used; db.tickets[idx]=data; } else { db.tickets.push(data); } closeAddModal(); render(); }
+        
+        function toggleUsed(id) { const t=db.tickets.find(x=>x.id===id); if(t){ t.used=!t.used; render(); }}
+        function deleteFolder(id) { if(confirm('刪除分類會連同票券一起刪除，確定？')){ db.folders=db.folders.filter(x=>x.id!==id); db.tickets=db.tickets.filter(x=>x.folderId!==id); render(); }}
+        function deleteTicket(id) { db.tickets=db.tickets.filter(x=>x.id!==id); render(); }
         function openFolderModal() { document.getElementById('folder-modal').classList.remove('hidden'); }
         function closeFolderModal() { document.getElementById('folder-modal').classList.add('hidden'); }
-        function saveFolder() { const n = document.getElementById('new-folder-name').value.trim(); if(n){ db.folders.push({id:Date.now().toString(), name:n}); render(); closeFolderModal(); }}
-        function deleteFolder(id) { if(confirm('確定刪除此分類？')){ db.folders = db.folders.filter(x=>x.id!==id); db.tickets = db.tickets.filter(x=>x.folderId!==id); render(); }}
-        function deleteTicket(id) { if(confirm('確定刪除票券？')){ db.tickets = db.tickets.filter(x=>x.id!==id); render(); }}
-        function toggleUsed(id) { const t=db.tickets.find(x=>x.id===id); if(t){ t.used=!t.used; render(); }}
-        function setTab(t) { currentTab=t; 
-            ['unused','used','expired'].forEach(id => document.getElementById('btn-'+id).className = 'text-sm font-bold text-gray-300 transition-all relative');
-            document.getElementById('btn-'+t).className = 'text-sm font-bold transition-all relative tab-active';
-            render(); 
-        }
-        function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('opacity-100'); setTimeout(()=>t.classList.remove('opacity-100'),2000); }
         function handleFile(i) { const r=new FileReader(); r.onload=e=>{ tempImg=e.target.result; document.getElementById('img-output').src=tempImg; document.getElementById('img-output').classList.remove('hidden'); document.getElementById('upload-hint').classList.add('hidden'); }; r.readAsDataURL(i.files[0]); }
-
-        // --- 縮放 Lightbox 控制 ---
-        const lightbox = document.getElementById('image-lightbox');
-        const lightboxImg = document.getElementById('lightbox-img');
-        const imgContainer = document.getElementById('lightbox-img-container');
-
-        function zoomImage(src, title) {
-            if (!src) return;
-            lightboxImg.src = src;
-            document.getElementById('lightbox-title').innerText = title || '票券預覽';
-            scale = 1; posX = 0; posY = 0;
-            updateTransform();
-            lightbox.style.display = 'flex';
-        }
-        function closeLightbox() { lightbox.style.display = 'none'; }
-        function updateTransform() { lightboxImg.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`; }
-
-        imgContainer.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 2) {
-                startDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                lastScale = scale;
-            } else if (e.touches.length === 1) {
-                isDragging = true;
-                touchStartX = e.touches[0].pageX - posX;
-                touchStartY = e.touches[0].pageY - posY;
-            }
-        });
-
-        imgContainer.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (e.touches.length === 2) {
-                const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                scale = Math.min(Math.max(lastScale * (dist / startDistance), 1), 5);
-                updateTransform();
-            } else if (e.touches.length === 1 && isDragging && scale > 1) {
-                posX = e.touches[0].pageX - touchStartX;
-                posY = e.touches[0].pageY - touchStartY;
-                updateTransform();
-            }
-        });
-        imgContainer.addEventListener('touchend', () => { isDragging = false; });
-
-        // 滑動刪除
-        function handleTouchStart(e, id) { if (activeSwipeId && activeSwipeId !== id) resetSwipe(); startX = e.touches[0].clientX; activeSwipeId = id; document.getElementById(`content-${id}`).style.transition = 'none'; }
-        function handleTouchMove(e, id) { let moveX = e.touches[0].clientX - startX; if (moveX > 0) moveX = 0; if (moveX < -100) moveX = -100; document.getElementById(`content-${id}`).style.transform = `translateX(${moveX}px)`; }
-        function handleTouchEnd(e, id) { const content = document.getElementById(`content-${id}`); content.style.transition = 'transform 0.3s ease'; const finalX = e.changedTouches[0].clientX - startX; if (finalX < -50) { content.style.transform = 'translateX(-80px)'; } else { content.style.transform = 'translateX(0)'; activeSwipeId = null; } }
-        function resetSwipe() { if (activeSwipeId) { const el = document.getElementById(`content-${activeSwipeId}`); if (el) el.style.transform = 'translateX(0)'; activeSwipeId = null; } }
+        function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('opacity-100'); setTimeout(()=>t.classList.remove('opacity-100'),2000); }
+        function setTab(t) { currentTab=t; render(); }
+        function zoomImage(s, t) { if(!s)return; document.getElementById('lightbox-img').src=s; document.getElementById('lightbox-title').innerText=t; document.getElementById('image-lightbox').style.display='flex'; }
+        function closeLightbox() { document.getElementById('image-lightbox').style.display='none'; }
+        
+        let startX=0, activeSwipeId=null;
+        function handleTouchStart(e,id){startX=e.touches[0].clientX;activeSwipeId=id;document.getElementById(`content-${id}`).style.transition='none';}
+        function handleTouchMove(e,id){let x=e.touches[0].clientX-startX;if(x>0)x=0;if(x<-100)x=-100;document.getElementById(`content-${id}`).style.transform=`translateX(${x}px)`;}
+        function handleTouchEnd(e,id){const c=document.getElementById(`content-${id}`);c.style.transition='transform 0.3s ease';if(e.changedTouches[0].clientX-startX<-50)c.style.transform='translateX(-80px)';else c.style.transform='translateX(0)';}
 
         window.onload = render;
     </script>
