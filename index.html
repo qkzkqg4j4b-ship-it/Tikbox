@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Tikbox">
 
-    <title>Tikbox v5.3</title>
+    <title>Tikbox v5.4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
@@ -166,8 +166,8 @@
                 <div class="flex justify-between items-center mb-5 px-1">
                     <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest">到期點數</h2>
                     <div class="flex gap-2">
-                        <button onclick="togglePointHistory()" id="point-history-btn" class="text-[10px] font-bold text-gray-400 border border-gray-200 px-2.5 py-1.5 rounded-xl">歷史紀錄</button>
-                        <button onclick="openPointModal()" class="text-xs font-black text-blue-600 bg-blue-50 px-3.5 py-2 rounded-xl">+ 新增</button>
+                        <button onclick="togglePointHistory()" id="point-history-btn" class="text-[10px] font-bold border border-gray-200 px-2.5 py-1.5 rounded-xl transition-colors">歷史紀錄</button>
+                        <button onclick="openPointModal()" class="text-xs font-black text-blue-600 bg-blue-50 px-3.5 py-2 rounded-xl active:scale-95">+ 新增</button>
                     </div>
                 </div>
                 <div id="point-list" class="space-y-3"></div>
@@ -197,14 +197,50 @@
             <svg class="w-8 h-8" stroke="white"><use xlink:href="#icon-plus"></use></svg>
         </button>
 
-        <!-- 分類彈窗 (修正版面) -->
+        <!-- 點數彈窗 (管理功能增強) -->
+        <div id="point-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-8">
+            <div class="bg-white w-full max-w-sm rounded-[32px] p-8 shadow-2xl">
+                <h3 class="text-xl font-black mb-6 text-center text-[#4A3F35]">管理點數</h3>
+                <input type="hidden" id="editing-point-id">
+                <div class="space-y-4">
+                    <div class="bg-gray-50 p-4 rounded-2xl">
+                        <label class="text-[10px] font-black text-blue-500 uppercase tracking-widest block mb-1">店家名稱</label>
+                        <input id="point-name" type="text" placeholder="例如：7-11 OP 點數" class="w-full bg-transparent font-bold outline-none text-[#4A3F35]">
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-2xl">
+                        <label class="text-[10px] font-black text-blue-500 uppercase tracking-widest block mb-1">點數額度</label>
+                        <input id="point-value" type="number" placeholder="0" class="w-full bg-transparent font-bold outline-none text-[#4A3F35]">
+                    </div>
+                    <div class="date-input-container">
+                        <div>
+                            <label class="text-[10px] font-black text-blue-500 uppercase tracking-widest block mb-1">到期日期</label>
+                            <span id="point-date-text" class="text-sm font-bold text-gray-400">點擊選擇日期</span>
+                        </div>
+                        <input id="point-expiry" type="date" class="native-date-input" onchange="document.getElementById('point-date-text').innerText=this.value">
+                    </div>
+                    <!-- 新增：已使用切換開關 -->
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                        <label class="text-sm font-black text-[#4A3F35]">標記為已使用 / 已兌換</label>
+                        <label class="switch"><input type="checkbox" id="point-used-toggle"><span class="slider"></span></label>
+                    </div>
+                </div>
+                <div class="flex gap-3 mt-8">
+                    <!-- 新增：刪除按鈕 (僅在編輯時顯示) -->
+                    <button id="point-delete-btn" onclick="deletePoint()" class="hidden w-16 py-4 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center">
+                        <svg class="w-6 h-6"><use xlink:href="#icon-trash"></use></svg>
+                    </button>
+                    <button onclick="closePointModal()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-gray-400">取消</button>
+                    <button onclick="savePoint()" class="flex-1 py-4 bg-blue-500 rounded-2xl font-bold text-white shadow-lg shadow-blue-200">儲存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分類彈窗 -->
         <div id="folder-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-6">
             <div class="bg-white w-full max-w-sm rounded-[32px] p-6 shadow-2xl overflow-hidden">
                 <h3 class="text-xl font-black mb-6 text-center text-[#4A3F35]">自定義分類</h3>
                 <input type="hidden" id="editing-folder-id">
-                
                 <div class="space-y-6">
-                    <!-- Emoji 快速選取 -->
                     <div>
                         <label class="text-[10px] font-black text-amber-500 uppercase tracking-widest block mb-2">選取圖示</label>
                         <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
@@ -217,16 +253,11 @@
                             <button onclick="selectQuickTag(this, '🍿')" class="quick-tag">🍿</button>
                         </div>
                     </div>
-
-                    <!-- 名稱與自訂 Emoji -->
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-3 bg-gray-50 p-1 rounded-2xl border-2 border-transparent focus-within:border-amber-100 transition-all">
-                            <input id="custom-emoji" type="text" placeholder="😀" maxlength="2" class="w-14 h-14 bg-white rounded-xl font-bold text-center text-xl outline-none shadow-sm flex-shrink-0">
-                            <input id="new-folder-name" type="text" placeholder="分類名稱..." class="flex-1 bg-transparent py-4 pr-4 font-bold outline-none text-[#4A3F35]">
-                        </div>
+                    <div class="flex items-center gap-3 bg-gray-50 p-1 rounded-2xl border-2 border-transparent focus-within:border-amber-100 transition-all">
+                        <input id="custom-emoji" type="text" placeholder="😀" maxlength="2" class="w-14 h-14 bg-white rounded-xl font-bold text-center text-xl outline-none shadow-sm flex-shrink-0">
+                        <input id="new-folder-name" type="text" placeholder="分類名稱..." class="flex-1 bg-transparent py-4 pr-4 font-bold outline-none text-[#4A3F35]">
                     </div>
                 </div>
-
                 <div class="flex gap-3 mt-8">
                     <button onclick="closeFolderModal()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-gray-400">取消</button>
                     <button onclick="saveFolder()" class="flex-1 py-4 bg-amber-500 rounded-2xl font-bold text-white shadow-lg shadow-amber-200">儲存</button>
@@ -234,26 +265,7 @@
             </div>
         </div>
 
-        <!-- 其餘彈窗保持不變但確保一致性 -->
-        <div id="point-modal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden flex items-center justify-center p-8">
-            <div class="bg-white w-full max-w-xs rounded-[32px] p-8 shadow-2xl">
-                <h3 class="text-xl font-black mb-6 text-center">點數紀錄</h3>
-                <input type="hidden" id="editing-point-id">
-                <div class="space-y-4">
-                    <input id="point-name" type="text" placeholder="店家名稱" class="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none">
-                    <input id="point-value" type="number" placeholder="點數額度" class="w-full bg-gray-50 p-4 rounded-2xl font-bold outline-none">
-                    <div class="date-input-container">
-                        <span id="point-date-text" class="text-sm font-bold text-gray-400">到期日期</span>
-                        <input id="point-expiry" type="date" class="native-date-input" onchange="document.getElementById('point-date-text').innerText=this.value">
-                    </div>
-                </div>
-                <div class="flex gap-3 mt-8">
-                    <button onclick="closePointModal()" class="flex-1 py-4 bg-gray-100 rounded-2xl font-bold text-gray-400">取消</button>
-                    <button onclick="savePoint()" class="flex-1 py-4 bg-blue-500 rounded-2xl font-bold text-white">儲存</button>
-                </div>
-            </div>
-        </div>
-
+        <!-- 票券彈窗 -->
         <div id="ticket-modal" class="fixed inset-0 bg-white z-50 hidden overflow-y-auto">
             <div class="px-8 pt-16 pb-12">
                 <div class="flex justify-between items-center mb-8">
@@ -298,6 +310,7 @@
     </div>
 
     <script>
+        // 初始化 DB
         let db = JSON.parse(localStorage.getItem('tikbox_v4_db')) || { folders: [], tickets: [], points: [] };
         if (db.folders.length === 0) {
             db.folders = [
@@ -323,42 +336,66 @@
             setTimeout(() => t.classList.remove('opacity-100'), 2000);
         }
 
-        // --- 圖片縮放 ---
-        let scale = 1, lastScale = 1, startDistance = 0, startX = 0, startY = 0, currentX = 0, currentY = 0;
-        const lightboxImg = document.getElementById('lightbox-img');
-        const lightboxContainer = document.getElementById('image-lightbox');
-
-        function zoomImage(s, t) { 
-            if(!s) return; 
-            lightboxImg.src = s; 
-            document.getElementById('lightbox-title').innerText = t; 
-            lightboxContainer.style.display = 'flex';
-            scale = 1; currentX = 0; currentY = 0;
-            updateImgTransform();
+        // --- 點數操作 ---
+        function openPointModal() { 
+            document.getElementById('editing-point-id').value = ""; 
+            document.getElementById('point-name').value = "";
+            document.getElementById('point-value').value = "";
+            document.getElementById('point-expiry').value = "";
+            document.getElementById('point-date-text').innerText = "點擊選擇日期";
+            document.getElementById('point-used-toggle').checked = false;
+            document.getElementById('point-delete-btn').classList.add('hidden');
+            document.getElementById('point-modal').classList.remove('hidden'); 
         }
-        function closeLightbox() { lightboxContainer.style.display = 'none'; }
-        function updateImgTransform() { lightboxImg.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`; }
 
-        lightboxContainer.addEventListener('touchstart', e => {
-            if (e.touches.length === 2) {
-                startDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                lastScale = scale;
-            } else if (e.touches.length === 1) {
-                startX = e.touches[0].pageX - currentX;
-                startY = e.touches[0].pageY - currentY;
+        function openEditPointModal(id) { 
+            const p = db.points.find(x => x.id === id);
+            document.getElementById('editing-point-id').value = p.id;
+            document.getElementById('point-name').value = p.name;
+            document.getElementById('point-value').value = p.value;
+            document.getElementById('point-expiry').value = p.expiry || "";
+            document.getElementById('point-date-text').innerText = p.expiry || "未設日期";
+            document.getElementById('point-used-toggle').checked = p.used || false;
+            document.getElementById('point-delete-btn').classList.remove('hidden');
+            document.getElementById('point-modal').classList.remove('hidden'); 
+        }
+
+        function closePointModal() { document.getElementById('point-modal').classList.add('hidden'); }
+
+        function savePoint() { 
+            const id = document.getElementById('editing-point-id').value;
+            const n = document.getElementById('point-name').value.trim();
+            const v = document.getElementById('point-value').value;
+            const e = document.getElementById('point-expiry').value;
+            const u = document.getElementById('point-used-toggle').checked;
+
+            if(!n || !v) { showToast('請填寫完整資訊'); return; }
+
+            if(id) { 
+                const p = db.points.find(x => x.id === id);
+                p.name = n; p.value = v; p.expiry = e; p.used = u;
+            } else {
+                db.points.push({id: Date.now().toString(), name: n, value: v, expiry: e, used: u});
             }
-        });
-        lightboxContainer.addEventListener('touchmove', e => {
-            e.preventDefault();
-            if (e.touches.length === 2) {
-                const distance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                scale = Math.min(Math.max(1, lastScale * (distance / startDistance)), 4);
-            } else if (e.touches.length === 1 && scale > 1) {
-                currentX = e.touches[0].pageX - startX;
-                currentY = e.touches[0].pageY - startY;
+            render(); closePointModal();
+        }
+
+        function deletePoint() {
+            const id = document.getElementById('editing-point-id').value;
+            if(id && confirm('確定要刪除這筆點數紀錄嗎？')) {
+                db.points = db.points.filter(x => x.id !== id);
+                render(); closePointModal();
             }
-            updateImgTransform();
-        });
+        }
+
+        function togglePointHistory() { 
+            showPointHistory = !showPointHistory; 
+            const btn = document.getElementById('point-history-btn');
+            btn.classList.toggle('bg-[#4A3F35]', showPointHistory);
+            btn.classList.toggle('text-white', showPointHistory);
+            btn.classList.toggle('text-gray-400', !showPointHistory);
+            render(); 
+        }
 
         // --- 渲染 ---
         function render() {
@@ -367,14 +404,17 @@
             const todayStr = new Date().toISOString().split('T')[0];
 
             // 渲染點數
-            const sortedPoints = [...db.points].sort((a,b) => (a.expiry || '9999') > (b.expiry || '9999') ? 1 : -1);
+            const sortedPoints = [...db.points].sort((a,b) => (a.expiry || '9999').localeCompare(b.expiry || '9999'));
             const displayPoints = sortedPoints.filter(p => showPointHistory ? p.used : !p.used);
+            
             pointList.innerHTML = displayPoints.map(p => {
                 const diff = calculateRemainingDays(p.expiry);
                 return `
-                    <div class="p-5 flex items-center justify-between ${p.used ? 'opacity-40 grayscale' : ''} bg-white rounded-[22px] border border-[#F0EDE8] mb-3 shadow-sm">
+                    <div onclick="openEditPointModal('${p.id}')" class="p-5 flex items-center justify-between ${p.used ? 'opacity-50 grayscale' : ''} bg-white rounded-[22px] border border-[#F0EDE8] mb-3 shadow-sm active:scale-[0.98] transition-all">
                         <div class="flex items-center gap-4 min-w-0">
-                            <div class="w-11 h-11 ${p.used ? 'bg-gray-100' : 'bg-blue-50'} rounded-full flex items-center justify-center text-blue-500"><svg class="w-6 h-6"><use xlink:href="#icon-coins"></use></svg></div>
+                            <div class="w-11 h-11 ${p.used ? 'bg-gray-100' : 'bg-blue-50'} rounded-full flex items-center justify-center text-blue-500 flex-shrink-0">
+                                <svg class="w-6 h-6"><use xlink:href="#icon-coins"></use></svg>
+                            </div>
                             <div class="min-w-0">
                                 <h4 class="font-black text-sm text-[#4A3F35] truncate">${p.name}</h4>
                                 <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">${p.expiry || '永久'} 到期</p>
@@ -384,12 +424,13 @@
                             <div class="text-right">
                                 <div class="font-black ${p.used ? 'text-gray-400' : 'text-blue-600'}">${p.value} pt</div>
                                 ${!p.used && diff !== null ? `<div class="text-[10px] font-black ${diff <= 7 ? 'text-red-500' : 'text-gray-300'}">剩 ${diff} 天</div>` : ''}
+                                ${p.used ? `<div class="text-[10px] font-black text-gray-400 italic">已使用</div>` : ''}
                             </div>
-                            <button onclick="openEditPointModal('${p.id}')" class="p-2 text-gray-200"><svg class="w-4 h-4"><use xlink:href="#icon-edit"></use></svg></button>
+                            <svg class="w-4 h-4 text-gray-200"><use xlink:href="#icon-chevron-right"></use></svg>
                         </div>
                     </div>
                 `;
-            }).join('') || `<div class="py-10 text-center text-gray-300 font-bold text-[11px] border-2 border-dashed border-gray-100 rounded-[24px]">尚無點數資料</div>`;
+            }).join('') || `<div class="py-10 text-center text-gray-300 font-bold text-[11px] border-2 border-dashed border-gray-100 rounded-[24px]">${showPointHistory ? '無歷史紀錄' : '尚無有效點數'}</div>`;
 
             // 渲染分類
             folderList.innerHTML = db.folders.map(f => {
@@ -414,7 +455,7 @@
                 `;
             }).join('');
 
-            // 渲染票券清單
+            // 渲染票券
             if (currentFolderId) {
                 const filtered = db.tickets.filter(t => {
                     if (t.folderId !== currentFolderId) return false;
@@ -457,21 +498,18 @@
             localStorage.setItem('tikbox_v4_db', JSON.stringify(db));
         }
 
-        // --- 分類與細節控制 ---
+        // --- 其他視窗控制 ---
         function openFolderModal(id = null) {
             const modal = document.getElementById('folder-modal');
             const customEmoji = document.getElementById('custom-emoji');
             modal.classList.remove('hidden');
             document.querySelectorAll('.quick-tag').forEach(t => t.classList.remove('selected'));
-            selectedEmoji = "";
-
             if(id) {
                 const f = db.folders.find(x => x.id === id);
                 document.getElementById('editing-folder-id').value = f.id;
                 const emoji = f.name.match(/(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])/)?.[0] || "";
                 document.getElementById('new-folder-name').value = f.name.replace(emoji, "").trim();
                 customEmoji.value = emoji;
-                selectedEmoji = emoji;
             } else {
                 document.getElementById('editing-folder-id').value = "";
                 document.getElementById('new-folder-name').value = "";
@@ -482,7 +520,6 @@
         function selectQuickTag(btn, emoji) {
             document.querySelectorAll('.quick-tag').forEach(t => t.classList.remove('selected'));
             btn.classList.add('selected');
-            selectedEmoji = emoji;
             document.getElementById('custom-emoji').value = emoji;
         }
         function saveFolder() {
@@ -497,18 +534,14 @@
         }
         function deleteFolder(id) { if(confirm('刪除後內的票券也會消失，確定嗎？')) { db.folders=db.folders.filter(x=>x.id!==id); db.tickets=db.tickets.filter(x=>x.folderId!==id); render(); } }
 
-        // --- 其他功能函數 (Tab, SN, Add, Save etc.) ---
         function setTab(tab) { currentTab = tab; document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.id === `tab-${tab}`)); render(); }
         function copySN(text) { const el = document.createElement('textarea'); el.value = text; document.body.appendChild(el); el.select(); document.execCommand('copy'); document.body.removeChild(el); showToast('已複製到剪貼簿'); }
         function toggleExpiryInput() { const wrapper = document.getElementById('expiry-input-wrapper'); const nx = document.getElementById('no-expiry-toggle').checked; wrapper.style.opacity = nx ? '0.3' : '1'; wrapper.style.pointerEvents = nx ? 'none' : 'auto'; }
-        function openPointModal() { document.getElementById('editing-point-id').value=""; document.getElementById('point-modal').classList.remove('hidden'); }
-        function closePointModal() { document.getElementById('point-modal').classList.add('hidden'); }
-        function savePoint() { const id=document.getElementById('editing-point-id').value, n=document.getElementById('point-name').value, v=document.getElementById('point-value').value, e=document.getElementById('point-expiry').value; if(!n||!v) return; if(id) { const p=db.points.find(x=>x.id===id); p.name=n; p.value=v; p.expiry=e; } else db.points.push({id:Date.now().toString(), name:n, value:v, expiry:e, used:false}); render(); closePointModal(); }
-        function openEditPointModal(id) { const p=db.points.find(x=>x.id===id); document.getElementById('editing-point-id').value=p.id; document.getElementById('point-name').value=p.name; document.getElementById('point-value').value=p.value; document.getElementById('point-expiry').value=p.expiry; document.getElementById('point-modal').classList.remove('hidden'); }
-        function togglePointHistory() { showPointHistory=!showPointHistory; render(); }
+        
         function openAddModal() { document.getElementById('editing-ticket-id').value=""; document.getElementById('title').value=""; document.getElementById('sn-input').value=""; tempImg=null; document.getElementById('img-output').classList.add('hidden'); document.getElementById('upload-hint').classList.remove('hidden'); document.getElementById('ticket-modal').classList.remove('hidden'); }
         function openEditModal(id) { const t=db.tickets.find(x=>x.id===id); document.getElementById('editing-ticket-id').value=t.id; document.getElementById('title').value=t.title; document.getElementById('sn-input').value=t.sn||""; document.getElementById('expiry').value=t.expiry||""; document.getElementById('no-expiry-toggle').checked=t.noExpiry||false; tempImg=t.image; if(tempImg){ document.getElementById('img-output').src=tempImg; document.getElementById('img-output').classList.remove('hidden'); document.getElementById('upload-hint').classList.add('hidden'); } toggleExpiryInput(); document.getElementById('ticket-modal').classList.remove('hidden'); }
         function closeAddModal() { document.getElementById('ticket-modal').classList.add('hidden'); }
+        
         function saveTicket() { const id=document.getElementById('editing-ticket-id').value, t=document.getElementById('title').value, s=document.getElementById('sn-input').value, f=document.getElementById('ticket-folder-select').value, e=document.getElementById('expiry').value, nx=document.getElementById('no-expiry-toggle').checked; if(!t) return; const data={id:id||Date.now().toString(), title:t, sn:s, folderId:f, expiry:e, noExpiry:nx, image:tempImg, used:false}; if(id) { const idx=db.tickets.findIndex(x=>x.id===id); data.used=db.tickets[idx].used; db.tickets[idx]=data; } else db.tickets.push(data); render(); closeAddModal(); }
         function toggleUsed(id) { const t=db.tickets.find(x=>x.id===id); t.used=!t.used; render(); }
         function deleteTicket(id) { db.tickets=db.tickets.filter(x=>x.id!==id); render(); }
@@ -516,11 +549,22 @@
         function openFolder(id) { currentFolderId=id; const f=db.folders.find(x=>x.id===id); document.getElementById('current-folder-name').innerText=f.name; document.getElementById('back-btn').classList.remove('hidden'); document.getElementById('home-view').classList.add('hidden'); document.getElementById('folder-view').classList.remove('hidden'); setTab('unused'); }
         function goHome() { currentFolderId=null; document.getElementById('back-btn').classList.add('hidden'); document.getElementById('home-view').classList.remove('hidden'); document.getElementById('folder-view').classList.add('hidden'); render(); }
         
-        // 滑動刪除手勢
+        // 滑動刪除
         let itemStartX=0;
         function handleItemTouchStart(e,id){itemStartX=e.touches[0].clientX;}
         function handleItemTouchMove(e,id){let x=e.touches[0].clientX-itemStartX; if(x<-100)x=-100; if(x>0)x=0; document.getElementById(`content-${id}`).style.transform=`translateX(${x}px)`;}
         function handleItemTouchEnd(e,id){const c=document.getElementById(`content-${id}`); if(e.changedTouches[0].clientX-itemStartX<-50) c.style.transform='translateX(-80px)'; else c.style.transform='translateX(0)';}
+
+        // 燈箱控制
+        let scale=1, lastScale=1, startDist=0, startX=0, startY=0, curX=0, curY=0;
+        const lbImg = document.getElementById('lightbox-img');
+        const lbCont = document.getElementById('image-lightbox');
+        function zoomImage(s,t){ if(!s)return; lbImg.src=s; document.getElementById('lightbox-title').innerText=t; lbCont.style.display='flex'; scale=1; curX=0; curY=0; updateImgT(); }
+        function closeLightbox(){ lbCont.style.display='none'; }
+        function updateImgT(){ lbImg.style.transform=`translate(${curX}px,${curY}px) scale(${scale})`; }
+        lbCont.addEventListener('touchstart',e=>{ if(e.touches.length===2) startDist=Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY); else if(e.touches.length===1){startX=e.touches[0].pageX-curX; startY=e.touches[0].pageY-curY;} });
+        lbCont.addEventListener('touchmove',e=>{ e.preventDefault(); if(e.touches.length===2){ scale=Math.min(Math.max(1,lastScale*(Math.hypot(e.touches[0].pageX-e.touches[1].pageX,e.touches[0].pageY-e.touches[1].pageY)/startDist)),4); } else if(e.touches.length===1&&scale>1){curX=e.touches[0].pageX-startX; curY=e.touches[0].pageY-startY;} updateImgT(); });
+        lbCont.addEventListener('touchend',()=>lastScale=scale);
 
         window.onload = render;
     </script>
